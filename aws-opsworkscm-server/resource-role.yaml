@@ -24,9 +24,8 @@ Resources:
               - Effect: Allow
                 Action:
                 - "opsworkscm:CreateReceiptFilter"
-                - "opsworkscm:DeleteReceiptFilter "
+                - "opsworkscm:DeleteReceiptFilter"
                 - "opsworkscm:ListReceiptFilters"
-                - "opsworkscm:ListReceiptFilters "
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
