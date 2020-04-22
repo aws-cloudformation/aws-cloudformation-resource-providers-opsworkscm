@@ -1,0 +1,15 @@
+{
+    "typeName": "AWS::OpsWorksCM::Server",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.opsworkscm.server.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.opsworkscm.server.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "software",
+            "amazon",
+            "opsworkscm",
+            "server"
+        ]
+    }
+}
