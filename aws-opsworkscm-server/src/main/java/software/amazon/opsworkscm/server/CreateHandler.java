@@ -21,12 +21,18 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         final CallbackContext callbackContext,
         final Logger logger) {
 
+        final CallbackContext context = callbackContext == null ? CallbackContext.builder().build() : callbackContext;
         final ResourceModel model = request.getDesiredResourceState();
 
-        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-            .resourceModel(model)
-            .status(OperationStatus.SUCCESS)
-            .build();
+        if (!context.isCreateServerStarted()) {
+
+        }
+
+        if (!context.isCreateServerStabilized()) {
+
+        }
+
+        return ProgressEvent.defaultSuccessHandler(model);
     }
 
     private CreateServerResponse createServer(final ResourceModel model, final AmazonWebServicesClientProxy proxy) {
