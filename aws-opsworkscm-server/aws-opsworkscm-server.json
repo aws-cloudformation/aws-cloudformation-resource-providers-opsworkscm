@@ -155,14 +155,14 @@
   "handlers": {
     "create": {
       "permissions": [
-        "opsworkscm:ListReceiptFilters ",
+        "opsworkscm:ListReceiptFilters",
         "opsworkscm:CreateReceiptFilter"
       ]
     },
     "delete": {
       "permissions": [
         "opsworkscm:ListReceiptFilters",
-        "opsworkscm:DeleteReceiptFilter "
+        "opsworkscm:DeleteReceiptFilter"
       ]
     },
     "list": {

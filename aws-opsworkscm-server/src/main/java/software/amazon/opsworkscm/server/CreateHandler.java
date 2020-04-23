@@ -1,5 +1,10 @@
 package software.amazon.opsworkscm.server;
 
+import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsException;
+import software.amazon.awssdk.services.opsworkscm.model.CreateServerRequest;
+import software.amazon.awssdk.services.opsworkscm.model.CreateServerResponse;
+import software.amazon.awssdk.services.opsworkscm.OpsWorksCmClient;
+import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -18,19 +23,19 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        // Set model primary ID if absent
-        if(model.getId() == null) {
-            model.setId(IdentifierUtils.generateResourceIdentifier(
-                    request.getLogicalResourceIdentifier(),
-                    request.getClientRequestToken()
-            ));
-        }
-
-        // TODO : put your code here
-
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
             .resourceModel(model)
             .status(OperationStatus.SUCCESS)
             .build();
+    }
+
+    private CreateServerResponse createServer(final ResourceModel model, final AmazonWebServicesClientProxy proxy) {
+        final OpsWorksCmClient opsWorksCmClient = ClientBuilder.getClient();
+        final CreateServerRequest request = Translator.createServerRequest(model);
+        try {
+            return proxy.injectCredentialsAndInvokeV2(request, opsWorksCmClient::createServer);
+        } catch (ResourceAlreadyExistsException e) {
+            throw new CfnAlreadyExistsException(e);
+        }
     }
 }
