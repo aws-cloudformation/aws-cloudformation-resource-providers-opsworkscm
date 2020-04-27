@@ -41,6 +41,7 @@ public class CreateHandlerTest {
                 .desiredResourceState(model)
                 .logicalResourceIdentifier("logical-id")
                 .clientRequestToken(UUID.randomUUID().toString())
+                .region("us-east-1")
                 .build();
 
         final ProgressEvent<ResourceModel, CallbackContext> response

@@ -1,5 +1,6 @@
 package software.amazon.opsworkscm.server;
 
+import software.amazon.awssdk.services.opsworkscm.OpsWorksCmClient;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -15,6 +16,8 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
         final Logger logger) {
+
+        final OpsWorksCmClient opsWorksCmClient = ClientBuilder.getClient(request.getRegion());
 
         final ResourceModel model = request.getDesiredResourceState();
 
