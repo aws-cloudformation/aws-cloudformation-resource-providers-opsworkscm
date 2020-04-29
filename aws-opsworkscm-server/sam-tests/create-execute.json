@@ -1,0 +1,26 @@
+{
+  "credentials": {
+    "AccessKeyId": "<TO_BE_ADDED>",
+    "SecretAccessKey": "<TO_BE_ADDED>",
+    "SessionToken": "<TO_BE_ADDED>"
+  },
+  "action": "CREATE",
+  "request": {
+    "clientRequestToken": "4b90a7e4-b790-456b-a937-0cfdfa211dfe",
+    "region": "us-east-1",
+    "desiredResourceState": {
+      "ServerName": "cfnTestServer",
+      "Engine": "Chef",
+      "EngineVersion": "12",
+      "EngineModel": "Single",
+      "InstanceProfileArn": "arn:aws:iam::<ACCOUNT_ID>:instance-profile/aws-opsworks-cm-ec2-role",
+      "ServiceRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/service-role/aws-opsworks-cm-service-role",
+      "InstanceType": "m5.xlarge"
+    },
+    "logicalResourceIdentifier": "MyOpsWorksCMServer"
+  },
+  "callbackContext":{
+    "stabilizationStarted": false,
+    "stabilizationRetryTimes": 0}
+}
+
