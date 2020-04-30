@@ -1,4 +1,21 @@
-# AWS::OpsWorksCM::Server
+# How to test this code
+* Make sure it builds with `mvn package`
+* Try it manually:
+    1. Set up SAM (see "Setting up Testing" in https://quip-amazon.com/zgqfAWaCPUxh/CloudFormation-Uluru-Onboarding#TTM9CA2VAxl)
+    2. Start the lambda locally with `sam local start-lambda`
+    3. Invoke the lambda using `sudo sam local invoke "TestEntrypoint" -e sam-tests/FILE.json`
+        * replace `FILE.json` with the handler and execution stage you want to test (e.g. `create-execute.json`)
+        * before this json file works, you need to add proper credentials and roles to the file
+    4. Before commiting make sure the following commands succeed (If these fails, you will not be able to merge your pull request):
+      1. `pre-commit run --all-files`.  To install `pre-commit` run `pip install pre-commit`
+      2. `cfn submit --dry-run`
+
+* Use CloudFormation Handler Contracts with `cfn test`. More on that here: https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test.html
+
+____________________
+# Information from CFN team
+
+## AWS::OpsWorksCM::Server
 
 Congratulations on starting development! Next steps:
 
