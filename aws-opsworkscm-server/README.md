@@ -6,6 +6,9 @@
     3. Invoke the lambda using `sudo sam local invoke "TestEntrypoint" -e sam-tests/FILE.json`
         * replace `FILE.json` with the handler and execution stage you want to test (e.g. `create-execute.json`)
         * before this json file works, you need to add proper credentials and roles to the file
+    4. Before commiting make sure the following commands succeed (If these fails, you will not be able to merge your pull request):
+      1. `pre-commit run --all-files`.  To install `pre-commit` run `pip install pre-commit`
+      2. `cfn submit --dry-run`
 
 * Use CloudFormation Handler Contracts with `cfn test`. More on that here: https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test.html
 
