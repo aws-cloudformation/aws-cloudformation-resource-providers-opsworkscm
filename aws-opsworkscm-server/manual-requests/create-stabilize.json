@@ -19,8 +19,8 @@
     },
     "logicalResourceIdentifier": "MyOpsWorksCMServer"
   },
-  "callbackContext":{
+  "callbackContext": {
     "stabilizationStarted": true,
-    "stabilizationRetryTimes": 2}
+    "stabilizationRetryTimes": 2
+  }
 }
-
