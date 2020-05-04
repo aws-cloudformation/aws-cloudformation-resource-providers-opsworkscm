@@ -1,0 +1,20 @@
+{
+  "credentials": {
+    "AccessKeyId": "<TO_BE_ADDED>",
+    "SecretAccessKey": "<TO_BE_ADDED>",
+    "SessionToken": "<TO_BE_ADDED>"
+  },
+  "action": "DELETE",
+  "request": {
+    "clientRequestToken": "4b90a7e4-b790-456b-a937-0cfdfa211dfe",
+    "region": "us-east-1",
+    "desiredResourceState": {
+      "ServerName": "JollansChef2"
+    },
+    "logicalResourceIdentifier": "MyOpsWorksCMServer"
+  },
+  "callbackContext": {
+    "stabilizationStarted": true,
+    "stabilizationRetryTimes": 3
+  }
+}
