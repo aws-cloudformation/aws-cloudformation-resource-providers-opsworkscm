@@ -118,6 +118,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
 
     private void setModelServerName() {
         if (StringUtils.isNullOrEmpty(model.getServerName())) {
+            logger.log("RequestModel doesn't have the server name. Setting it using request identifier and client token");
             model.setServerName(
                     IdentifierUtils.generateResourceIdentifier(
                             request.getLogicalResourceIdentifier(),
@@ -126,12 +127,14 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
                     )
             );
         } else if (model.getServerName().length() > MAX_LENGTH_CONFIGURATION_SET_NAME) {
+            logger.log(String.format("ServerName length was greater than %d characters. Truncating the ServerName", MAX_LENGTH_CONFIGURATION_SET_NAME));
             model.setServerName(model.getServerName().substring(0, MAX_LENGTH_CONFIGURATION_SET_NAME));
         }
     }
 
     private void setModelId() {
         if (model.getId() == null) {
+            logger.log("RequestModel doesn't have the model id. Setting it using request identifier and client token");
             model.setId(IdentifierUtils.generateResourceIdentifier(
                     request.getLogicalResourceIdentifier(),
                     request.getClientRequestToken()
