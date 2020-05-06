@@ -18,6 +18,7 @@ import software.amazon.cloudformation.resource.IdentifierUtils;
 public class CreateHandler extends BaseHandler<CallbackContext> {
 
     ResourceModel model;
+    ResourceModel oldModel;
     CallbackContext callbackContext;
     Logger logger;
     ResourceHandlerRequest<ResourceModel> request;
@@ -36,6 +37,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
 
         this.request = request;
         this.model = request.getDesiredResourceState();
+        this.oldModel = request.getPreviousResourceState();
         this.callbackContext = callbackContext;
         this.logger = logger;
 
@@ -43,7 +45,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         setModelId();
 
         final OpsWorksCmClient opsWorksCmClientclient = ClientBuilder.getClient();
-        this.client = new ClientWrapper(opsWorksCmClientclient, model, proxy, logger);
+        this.client = new ClientWrapper(opsWorksCmClientclient, model, oldModel, proxy, logger);
 
         try {
             if (callbackContext.isStabilizationStarted()) {

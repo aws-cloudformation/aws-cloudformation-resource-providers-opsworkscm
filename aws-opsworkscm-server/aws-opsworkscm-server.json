@@ -165,6 +165,11 @@
         "opsworkscm:DeleteReceiptFilter"
       ]
     },
+    "update": {
+      "permissions": [
+        "opsworkscm:UpdateReceiptFilters"
+      ]
+    },
     "list": {
       "permissions": [
         "opsworkscm:ListReceiptFilters"

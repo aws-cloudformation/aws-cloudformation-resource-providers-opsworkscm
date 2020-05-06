@@ -15,6 +15,7 @@ import software.amazon.cloudformation.exceptions.ResourceNotFoundException;
 public class ReadHandler extends BaseHandler<CallbackContext> {
 
     ResourceModel model;
+    ResourceModel oldModel;
     CallbackContext callbackContext;
     Logger logger;
     ResourceHandlerRequest<ResourceModel> request;
@@ -31,6 +32,7 @@ public class ReadHandler extends BaseHandler<CallbackContext> {
 
         this.request = request;
         this.model = request.getDesiredResourceState();
+        this.oldModel = request.getPreviousResourceState();
         this.callbackContext = callbackContext;
         this.logger = logger;
 
@@ -38,7 +40,7 @@ public class ReadHandler extends BaseHandler<CallbackContext> {
         setModelId();
 
         final OpsWorksCmClient opsWorksCmClientclient = ClientBuilder.getClient();
-        this.client = new ClientWrapper(opsWorksCmClientclient, model, proxy, logger);
+        this.client = new ClientWrapper(opsWorksCmClientclient, model, oldModel, proxy, logger);
 
         final DescribeServersResponse result;
         final String serverName = model.getServerName();
