@@ -13,6 +13,9 @@ public class CallbackContext {
     private boolean stabilizationStarted;
     private int stabilizationRetryTimes;
 
+    private boolean updateTagComplete;
+    private boolean updateServerComplete;
+
     public int incrementRetryTimes() {
         final int newRetryTimes = getStabilizationRetryTimes() + 1;
         setStabilizationRetryTimes(newRetryTimes);

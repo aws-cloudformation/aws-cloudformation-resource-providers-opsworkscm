@@ -27,6 +27,7 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
     CallbackContext callbackContext;
     Logger logger;
     ResourceModel model;
+    ResourceModel oldModel;
     ClientWrapper client;
 
     private static int NO_CALLBACK_DELAY = 0;
@@ -40,9 +41,9 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
             final CallbackContext callbackContext,
             final Logger logger) {
 
-        final ResourceModel model = request.getDesiredResourceState();
         this.request = request;
         this.model = request.getDesiredResourceState();
+        this.oldModel = request.getPreviousResourceState();
         this.callbackContext = callbackContext;
         this.logger = logger;
 
@@ -50,7 +51,7 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
         setModelId();
 
         final OpsWorksCmClient opsWorksCmClientclient = ClientBuilder.getClient();
-        this.client = new ClientWrapper(opsWorksCmClientclient, model, proxy, logger);
+        this.client = new ClientWrapper(opsWorksCmClientclient, model, oldModel, proxy, logger);
 
         try {
             if (callbackContext.isStabilizationStarted()) {

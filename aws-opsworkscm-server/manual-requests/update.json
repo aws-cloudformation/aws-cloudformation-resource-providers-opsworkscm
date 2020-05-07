@@ -1,0 +1,34 @@
+{
+  "credentials": {
+    "AccessKeyId": "<TO_BE_ADDED>",
+    "SecretAccessKey": "<TO_BE_ADDED>",
+    "SessionToken": "<TO_BE_ADDED>"
+  },
+  "action": "UPDATE",
+  "request": {
+    "clientRequestToken": "4b90a7e4-b790-456b-a937-0cfdfa211dfe",
+    "region": "us-east-1",
+    "desiredResourceState": {
+      "ServerName": "cfnjollans",
+      "BackupRetentionCount": 7,
+      "Tags": [
+        {
+          "Key": "pete",
+          "Value": "asd"
+        }
+      ]
+    },
+    "previousResourceState": {
+      "ServerName": "cfnjollans",
+      "BackupRetentionCount": 7,
+      "Tags": [
+        {
+          "Key": "pete2",
+          "Value": "asd"
+        }
+      ]
+    },
+    "logicalResourceIdentifier": "MyOpsWorksCMServer"
+  },
+  "callbackContext": {}
+}
