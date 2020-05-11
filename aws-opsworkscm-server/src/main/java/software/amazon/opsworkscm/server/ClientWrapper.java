@@ -38,6 +38,10 @@ public class ClientWrapper {
         return proxy.injectCredentialsAndInvokeV2(buildDescribeServerRequest(), client::describeServers);
     }
 
+    public DescribeServersResponse describeAllServers() {
+        return proxy.injectCredentialsAndInvokeV2(buildDescribeAllServersRequest(), client::describeServers);
+    }
+
     public DeleteServerResponse deleteServer() {
         return proxy.injectCredentialsAndInvokeV2(buildDeleteServerRequest(), client::deleteServer);
     }
@@ -70,6 +74,9 @@ public class ClientWrapper {
         return DescribeServersRequest.builder()
                 .serverName(model.getServerName())
                 .build();
+    }
+    private DescribeServersRequest buildDescribeAllServersRequest() {
+        return DescribeServersRequest.builder().build();
     }
 
     private DeleteServerRequest buildDeleteServerRequest() {
