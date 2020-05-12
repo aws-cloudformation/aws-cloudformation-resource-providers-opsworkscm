@@ -26,6 +26,7 @@ Resources:
                 - "opsworkscm:CreateReceiptFilter"
                 - "opsworkscm:DeleteReceiptFilter"
                 - "opsworkscm:ListReceiptFilters"
+                - "opsworkscm:ReadReceiptFilters"
                 - "opsworkscm:UpdateReceiptFilters"
                 Resource: "*"
 Outputs:

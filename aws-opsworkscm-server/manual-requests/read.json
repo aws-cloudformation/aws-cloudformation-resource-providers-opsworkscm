@@ -1,0 +1,17 @@
+{
+  "credentials": {
+    "AccessKeyId": "<TO_BE_ADDED>",
+    "SecretAccessKey": "<TO_BE_ADDED>",
+    "SessionToken": "<TO_BE_ADDED>"
+  },
+  "action": "READ",
+  "request": {
+    "clientRequestToken": "4b90a7e4-b790-456b-a937-0cfdfa211dfe",
+    "region": "us-east-1",
+    "desiredResourceState": {
+        "ServerName": "cfnTestServer"
+    },
+    "logicalResourceIdentifier": "MyOpsWorksCMServer"
+  },
+  "callbackContext": {}
+}
