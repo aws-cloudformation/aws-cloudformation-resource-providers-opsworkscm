@@ -1,38 +1,22 @@
 package software.amazon.opsworkscm.server;
 
-import com.amazonaws.util.StringUtils;
-import software.amazon.awssdk.services.opsworkscm.OpsWorksCmClient;
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
 import software.amazon.awssdk.services.opsworkscm.model.InvalidStateException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.awssdk.services.opsworkscm.model.ServerStatus;
 import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import software.amazon.cloudformation.resource.IdentifierUtils;
 
-public class DeleteHandler extends BaseHandler<CallbackContext> {
+public class DeleteHandler extends BaseOpsWorksCMHandler {
 
     public static final String SERVER_DELETION_FAILED_MESSAGE = "Server %s deletion has failed with reason: %s";
     public static final String SERVER_OPERATION_STILL_IN_PROGRESS_MESSAGE = "Cannot delete the server '%s'. The current operation on the server is still in progress\\." +
             " \\(Service: AWSOpsWorksCM; Status Code: 400; Error Code: ValidationException; Request ID: .*\\)";
-
-    AmazonWebServicesClientProxy proxy;
-    ResourceHandlerRequest<ResourceModel> request;
-    CallbackContext callbackContext;
-    Logger logger;
-    ResourceModel model;
-    ResourceModel oldModel;
-    ClientWrapper client;
-
-    private static int NO_CALLBACK_DELAY = 0;
-    private static int CALLBACK_DELAY_SECONDS = 60;
-    private static final int MAX_LENGTH_CONFIGURATION_SET_NAME = 40;
 
     @Override
     public ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -41,17 +25,7 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
             final CallbackContext callbackContext,
             final Logger logger) {
 
-        this.request = request;
-        this.model = request.getDesiredResourceState();
-        this.oldModel = request.getPreviousResourceState();
-        this.callbackContext = callbackContext;
-        this.logger = logger;
-
-        setModelServerName();
-        setModelId();
-
-        final OpsWorksCmClient opsWorksCmClientclient = ClientBuilder.getClient();
-        this.client = new ClientWrapper(opsWorksCmClientclient, model, oldModel, proxy, logger);
+        initialize(proxy, request, callbackContext, logger);
 
         try {
             if (callbackContext.isStabilizationStarted()) {
@@ -113,29 +87,6 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
                 logger.log(String.format("Server %s is in an unexpected state. Server should be deleted, but is %s. With reason: %s",
                         actualServerName, serverStatus, statusReason));
                 return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
-        }
-    }
-
-    private void setModelServerName() {
-        if (StringUtils.isNullOrEmpty(model.getServerName())) {
-            model.setServerName(
-                    IdentifierUtils.generateResourceIdentifier(
-                            request.getLogicalResourceIdentifier(),
-                            request.getClientRequestToken(),
-                            MAX_LENGTH_CONFIGURATION_SET_NAME
-                    )
-            );
-        } else if (model.getServerName().length() > MAX_LENGTH_CONFIGURATION_SET_NAME) {
-            model.setServerName(model.getServerName().substring(0, MAX_LENGTH_CONFIGURATION_SET_NAME));
-        }
-    }
-
-    private void setModelId() {
-        if (model.getId() == null) {
-            model.setId(IdentifierUtils.generateResourceIdentifier(
-                    request.getLogicalResourceIdentifier(),
-                    request.getClientRequestToken()
-            ));
         }
     }
 
