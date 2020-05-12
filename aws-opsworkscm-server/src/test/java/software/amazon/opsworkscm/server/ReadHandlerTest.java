@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,6 +64,9 @@ public class ReadHandlerTest {
                 .clientRequestToken(UUID.randomUUID().toString())
                 .region(REGION)
                 .build();
+
+        lenient().doReturn(DescribeServersResponse.builder().servers(Server.builder().serverName(SERVER_NAME).status("HEALTHY").build()).build())
+                .when(proxy).injectCredentialsAndInvokeV2(any(), any());
     }
 
     @Test
@@ -101,10 +105,10 @@ public class ReadHandlerTest {
                 .region(REGION)
                 .build();
 
-        assertThrows(CfnInvalidRequestException.class,
-                ()->{
-                    handler.handleRequest(proxy, request, callbackContext, logger);
-                });
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
+        String actualServerName = response.getResourceModel().getServerName();
+        assertThat(actualServerName).isEqualTo("OpsWorksCMServerHasAVeryLongServerNameIn");
+        assertThat(actualServerName.length()).isEqualTo(40);
     }
 
     @Test
@@ -120,7 +124,6 @@ public class ReadHandlerTest {
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> assertDescribeSuccess(ResourceHandlerRequest<ResourceModel> request) {
-        doReturn(DescribeServersResponse.builder().servers(Server.builder().serverName(SERVER_NAME).status("HEALTHY").build()).build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
 
         assertThat(response).isNotNull();
