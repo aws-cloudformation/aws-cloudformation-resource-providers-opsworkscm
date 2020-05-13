@@ -13,7 +13,3 @@ Resources:
       PreferredBackupWindow: '08:00'
       PreferredMaintenanceWindow: 'Fri:08:00'
       ServiceRoleArn: "arn:aws:iam::<ACCOUNT_ID>:role/opsworks-cm-service-role"
-Outputs:
-  endpoint:
-    Description: OpsWorksCM Server Endpoint
-    Value: !GetAtt [MyChefServer, Endpoint]
