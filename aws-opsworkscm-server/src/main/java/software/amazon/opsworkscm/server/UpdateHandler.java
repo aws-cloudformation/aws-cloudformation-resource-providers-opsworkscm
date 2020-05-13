@@ -29,13 +29,13 @@ public class UpdateHandler extends BaseOpsWorksCMHandler {
             }
             return ProgressEvent.defaultSuccessHandler(model);
         } catch (ResourceNotFoundException e) {
-            logger.log(String.format("ResourceNotFoundException during update of server %s, with message %s", model.getServerName(), e.getMessage()));
+            log.error(String.format("ResourceNotFoundException during update of server %s, with message %s", model.getServerName(), e.getMessage()), e);
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.NotFound);
         } catch (InvalidStateException e) {
-            logger.log(String.format("InvalidStateException during update of server %s, with message %s", model.getServerName(), e.getMessage()));
+            log.error(String.format("InvalidStateException during update of server %s, with message %s", model.getServerName(), e.getMessage()), e);
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.NotUpdatable);
         } catch (ValidationException e) {
-            logger.log(String.format("ValidationException during update of server %s, with message %s", model.getServerName(), e.getMessage()));
+            log.error(String.format("ValidationException during update of server %s, with message %s", model.getServerName(), e.getMessage()), e);
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.InvalidRequest);
         }
     }

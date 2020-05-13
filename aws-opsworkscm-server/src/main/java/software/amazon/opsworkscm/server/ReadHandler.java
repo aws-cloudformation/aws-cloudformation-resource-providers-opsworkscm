@@ -23,7 +23,7 @@ public class ReadHandler extends BaseOpsWorksCMHandler {
         final String serverName = model.getServerName();
         callbackContext.incrementRetryTimes();
 
-        logger.log(String.format("Calling Describe Servers for ServerName %s", serverName));
+        log.info(String.format("Calling Describe Servers for ServerName %s", serverName));
 
         try {
             result = client.describeServer();
@@ -31,7 +31,7 @@ public class ReadHandler extends BaseOpsWorksCMHandler {
             addDescribeServerResponseAttributes(server);
             return ProgressEvent.defaultSuccessHandler(model);
         } catch (final software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException e) {
-            logger.log(String.format("Server %s was not found.", serverName));
+            log.error(String.format("Server %s was not found.", serverName), e);
             throw new ResourceNotFoundException(String.format("Server %s was not found.", serverName), e.getMessage());
         }
     }

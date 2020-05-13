@@ -7,6 +7,7 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.resource.IdentifierUtils;
+import software.amazon.opsworkscm.server.utils.LoggerWrapper;
 
 abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext> {
 
@@ -14,7 +15,7 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
     protected ResourceModel model;
     protected ResourceModel oldModel;
     protected CallbackContext callbackContext;
-    protected Logger logger;
+    protected LoggerWrapper log;
     protected ResourceHandlerRequest<ResourceModel> request;
     protected ClientWrapper client;
 
@@ -37,18 +38,18 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
         this.model = request.getDesiredResourceState();
         this.oldModel = request.getPreviousResourceState();
         this.callbackContext = callbackContext;
-        this.logger = logger;
+        this.log = new LoggerWrapper(logger);
 
         setModelServerName();
         setModelId();
 
         final OpsWorksCmClient opsWorksCmClientclient = ClientBuilder.getClient();
-        this.client = new ClientWrapper(opsWorksCmClientclient, model, oldModel, proxy, logger);
+        this.client = new ClientWrapper(opsWorksCmClientclient, model, oldModel, proxy, log);
     }
 
     private void setModelServerName() {
         if (StringUtils.isNullOrEmpty(model.getServerName())) {
-            logger.log("RequestModel doesn't have the server name. Setting it using request identifier and client token");
+            log.log("RequestModel doesn't have the server name. Setting it using request identifier and client token");
             model.setServerName(
                     IdentifierUtils.generateResourceIdentifier(
                             request.getLogicalResourceIdentifier(),
@@ -57,14 +58,14 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
                     )
             );
         } else if (model.getServerName().length() > MAX_LENGTH_CONFIGURATION_SET_NAME) {
-            logger.log(String.format("ServerName length was greater than %d characters. Truncating the ServerName", MAX_LENGTH_CONFIGURATION_SET_NAME));
+            log.log(String.format("ServerName length was greater than %d characters. Truncating the ServerName", MAX_LENGTH_CONFIGURATION_SET_NAME));
             model.setServerName(model.getServerName().substring(0, MAX_LENGTH_CONFIGURATION_SET_NAME));
         }
     }
 
     private void setModelId() {
         if (model.getId() == null) {
-            logger.log("RequestModel doesn't have the model id. Setting it using request identifier and client token");
+            log.log("RequestModel doesn't have the model id. Setting it using request identifier and client token");
             model.setId(IdentifierUtils.generateResourceIdentifier(
                     request.getLogicalResourceIdentifier(),
                     request.getClientRequestToken()

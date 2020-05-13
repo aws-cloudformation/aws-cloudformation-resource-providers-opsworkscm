@@ -8,6 +8,7 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.opsworkscm.server.utils.LoggerWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ public class ListHandler extends BaseHandler<CallbackContext> {
     private static final int NO_CALLBACK_DELAY = 0;
 
     CallbackContext callbackContext;
-    Logger logger;
+    LoggerWrapper log;
     ResourceHandlerRequest<ResourceModel> request;
     ClientWrapper client;
 
@@ -28,16 +29,16 @@ public class ListHandler extends BaseHandler<CallbackContext> {
             final CallbackContext callbackContext,
             final Logger logger) {
 
-        this.logger = logger;
+        this.log = new LoggerWrapper(logger);
 
         final OpsWorksCmClient opsWorksCmClientclient = ClientBuilder.getClient();
-        this.client = new ClientWrapper(opsWorksCmClientclient, request.getDesiredResourceState(), request.getPreviousResourceState(), proxy, logger);
+        this.client = new ClientWrapper(opsWorksCmClientclient, request.getDesiredResourceState(), request.getPreviousResourceState(), proxy, log);
 
-        logger.log("Calling Describe Servers with no ServerName");
+        log.info("Calling Describe Servers with no ServerName");
 
         DescribeServersResponse result = client.describeAllServers();
         if (result == null || result.servers() == null) {
-            logger.log("Describe result is Null. Retrying request.");
+            log.info("Describe result is Null. Retrying request.");
             return ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, request.getDesiredResourceState());
         }
 

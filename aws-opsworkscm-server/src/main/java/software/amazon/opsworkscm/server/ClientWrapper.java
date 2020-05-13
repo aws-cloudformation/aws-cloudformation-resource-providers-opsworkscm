@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.opsworkscm.model.UpdateServerRequest;
 import software.amazon.awssdk.services.opsworkscm.model.UpdateServerResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.opsworkscm.server.utils.LoggerWrapper;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +33,7 @@ public class ClientWrapper {
     ResourceModel model;
     ResourceModel oldModel;
     AmazonWebServicesClientProxy proxy;
-    Logger logger;
+    LoggerWrapper log;
 
     public DescribeServersResponse describeServer() {
         return proxy.injectCredentialsAndInvokeV2(buildDescribeServerRequest(), client::describeServers);
