@@ -34,18 +34,19 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
                 return handleExecute();
             }
         } catch (InvalidStateException e) {
-            logger.log(String.format("Service Side failure during delete-server for %s.", model.getServerName()));
+            log.error(String.format("Service Side failure during delete-server for %s.", model.getServerName()), e);
             return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.NotStabilized, "Service Internal Failure");
         } catch (ResourceNotFoundException e) {
             return handleServerNotFound(model.getServerName());
         } catch (ValidationException e) {
+            log.error(String.format("ValidationException during delete-server of %s.", model.getServerName()), e);
             if (e.getMessage().matches(String.format(SERVER_OPERATION_STILL_IN_PROGRESS_MESSAGE, model.getServerName()))) {
-                logger.log(String.format("Server operation still in progress during delete-server of %s.", model.getServerName()));
+                log.error(String.format("Server operation still in progress during delete-server of %s.", model.getServerName()));
                 return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
             }
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.InvalidRequest);
         } catch (Exception e) {
-            logger.log(String.format("CreateHandler failure during delete-server for %s.", model.getServerName()));
+            log.error(String.format("CreateHandler failure during delete-server for %s.", model.getServerName()), e);
             return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.InternalFailure, "Internal Failure");
         }
     }
@@ -64,7 +65,7 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
         result = client.describeServer();
 
         if (result == null || result.servers() == null) {
-            logger.log("Describe result is Null. Retrying request.");
+            log.info("Describe result is Null. Retrying request.");
             return ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, model);
         }
 
@@ -81,17 +82,17 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
             case DELETING:
                 return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
             case FAILED:
-                logger.log(String.format(SERVER_DELETION_FAILED_MESSAGE, actualServerName, statusReason));
+                log.info(String.format(SERVER_DELETION_FAILED_MESSAGE, actualServerName, statusReason));
                 return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.NotUpdatable, String.format(SERVER_DELETION_FAILED_MESSAGE, actualServerName, statusReason));
             default:
-                logger.log(String.format("Server %s is in an unexpected state. Server should be deleted, but is %s. With reason: %s",
+                log.info(String.format("Server %s is in an unexpected state. Server should be deleted, but is %s. With reason: %s",
                         actualServerName, serverStatus, statusReason));
                 return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
         }
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> handleServerNotFound(final String serverName) {
-        logger.log(String.format("Server %s deleted successfully.", serverName));
+        log.info(String.format("Server %s deleted successfully.", serverName));
         return ProgressEvent.defaultSuccessHandler(model);
     }
 }
