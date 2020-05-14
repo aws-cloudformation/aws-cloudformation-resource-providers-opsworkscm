@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static software.amazon.opsworkscm.server.ResourceModel.IDENTIFIER_KEY_SERVERNAME;
+
 @AllArgsConstructor
 public class ClientWrapper {
 
@@ -35,8 +37,8 @@ public class ClientWrapper {
     AmazonWebServicesClientProxy proxy;
     LoggerWrapper log;
 
-    public DescribeServersResponse describeServer() {
-        return proxy.injectCredentialsAndInvokeV2(buildDescribeServerRequest(), client::describeServers);
+    public DescribeServersResponse describeServer(String serverName) {
+        return proxy.injectCredentialsAndInvokeV2(buildDescribeServerRequest(serverName), client::describeServers);
     }
 
     public DescribeServersResponse describeAllServers() {
@@ -71,9 +73,9 @@ public class ClientWrapper {
         return proxy.injectCredentialsAndInvokeV2(buildUpdateServerRequest(), client::updateServer);
     }
 
-    private DescribeServersRequest buildDescribeServerRequest() {
+    private DescribeServersRequest buildDescribeServerRequest(String serverName) {
         return DescribeServersRequest.builder()
-                .serverName(model.getServerName())
+                .serverName(serverName)
                 .build();
     }
     private DescribeServersRequest buildDescribeAllServersRequest() {
@@ -82,7 +84,7 @@ public class ClientWrapper {
 
     private DeleteServerRequest buildDeleteServerRequest() {
         return DeleteServerRequest.builder()
-                .serverName(model.getServerName())
+                .serverName(model.getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString())
                 .build();
     }
 
@@ -172,9 +174,9 @@ public class ClientWrapper {
     }
 
     private String getResourceArn() {
-        DescribeServersResponse describeServersResponse = describeServer();
+        DescribeServersResponse describeServersResponse = describeServer(model.getServerName());
         if (describeServersResponse != null && describeServersResponse.hasServers()) {
-            return describeServer().servers().get(0).serverArn();
+            return describeServer(model.getServerName()).servers().get(0).serverArn();
         }
         throw ResourceNotFoundException.builder().message(String.format("Server with name %s does not exist.", model.getServerName())).build();
     }

@@ -145,7 +145,7 @@
     "/properties/Engine"
   ],
   "primaryIdentifier": [
-    "/properties/Id"
+    "/properties/ServerName"
   ],
   "readOnlyProperties": [
     "/properties/Id",
@@ -155,29 +155,33 @@
   "handlers": {
     "create": {
       "permissions": [
-        "opsworkscm:ListReceiptFilters",
-        "opsworkscm:CreateReceiptFilter"
+        "opsworks-cm:CreateServer",
+        "opsworks-cm:DescribeServers",
+        "iam:PassRole"
       ]
     },
     "delete": {
       "permissions": [
-        "opsworkscm:ListReceiptFilters",
-        "opsworkscm:DeleteReceiptFilter"
+        "opsworks-cm:DeleteServer",
+        "opsworks-cm:DescribeServers"
       ]
     },
     "update": {
       "permissions": [
-        "opsworkscm:UpdateReceiptFilters"
+        "opsworks-cm:UpdateServer",
+        "opsworks-cm:TagResource",
+        "opsworks-cm:UntagResource",
+        "opsworks-cm:DescribeServers"
       ]
     },
     "list": {
       "permissions": [
-        "opsworkscm:ListReceiptFilters"
+        "opsworks-cm:DescribeServers"
       ]
     },
     "read": {
       "permissions": [
-        "opsworkscm:ListReceiptFilters"
+        "opsworks-cm:DescribeServers"
       ]
     }
   }

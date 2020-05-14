@@ -24,17 +24,17 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
         initialize(proxy, request, callbackContext, logger);
 
         try {
-            if (callbackContext.isStabilizationStarted()) {
+            if (this.callbackContext.isStabilizationStarted()) {
                 return handleStabilize();
             } else {
                 return handleExecute();
             }
         } catch (InvalidStateException e) {
-            log.error(String.format("Service Side failure during create-server for %s.", model.getServerName()), e);
-            return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.InternalFailure, "Service Internal Failure");
+            log.error(String.format("Service Side failure during create-server for %s.", this.model.getServerName()), e);
+            return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InternalFailure, "Service Internal Failure");
         } catch (Exception e) {
-            log.error(String.format("CreateHandler failure during create-server for %s.", model.getServerName()), e);
-            return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.InternalFailure, "Internal Failure");
+            log.error(String.format("CreateHandler failure during create-server for %s.", this.model.getServerName()), e);
+            return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InternalFailure, "Internal Failure");
         }
     }
 
@@ -55,7 +55,7 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
         callbackContext.incrementRetryTimes();
 
         try {
-            result = client.describeServer();
+            result = client.describeServer(model.getServerName());
         } catch (final ResourceNotFoundException e) {
             return handleServerNotFound(serverName);
         }
@@ -82,6 +82,7 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
             case RESTORING:
             case UNDER_MAINTENANCE:
             case CREATING:
+                log.info(String.format("Server %s is still creating.", actualServerName));
                 return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
             default:
                 log.info(String.format("Server %s failed to CREATE because of reason: %s", actualServerName, statusReason));
