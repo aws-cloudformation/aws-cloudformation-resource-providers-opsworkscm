@@ -23,10 +23,13 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "opsworkscm:CreateReceiptFilter"
-                - "opsworkscm:DeleteReceiptFilter"
-                - "opsworkscm:ListReceiptFilters"
-                - "opsworkscm:UpdateReceiptFilters"
+                - "iam:PassRole"
+                - "opsworks-cm:CreateServer"
+                - "opsworks-cm:DeleteServer"
+                - "opsworks-cm:DescribeServers"
+                - "opsworks-cm:TagResource"
+                - "opsworks-cm:UntagResource"
+                - "opsworks-cm:UpdateServer"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:

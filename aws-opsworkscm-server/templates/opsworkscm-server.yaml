@@ -8,8 +8,8 @@ Resources:
       Engine: 'ChefAutomate'
       EngineVersion: '2'
       EngineModel: 'Single'
-      InstanceProfileArn: "arn:aws:iam::<ACCOUNT_ID>:instance-profile/opsworks-cm-ec2-role"
+      InstanceProfileArn: "arn:aws:iam::<ACCOUNT_ID>:instance-profile/aws-opsworks-cm-ec2-role"
       InstanceType: 'm4.xlarge'
       PreferredBackupWindow: '08:00'
       PreferredMaintenanceWindow: 'Fri:08:00'
-      ServiceRoleArn: "arn:aws:iam::<ACCOUNT_ID>:role/opsworks-cm-service-role"
+      ServiceRoleArn: "arn:aws:iam::<ACCOUNT_ID>:role/service-role/aws-opsworks-cm-service-role"

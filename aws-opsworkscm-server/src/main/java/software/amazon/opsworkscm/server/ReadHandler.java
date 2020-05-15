@@ -8,6 +8,8 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import static software.amazon.opsworkscm.server.ResourceModel.IDENTIFIER_KEY_SERVERNAME;
+
 public class ReadHandler extends BaseOpsWorksCMHandler {
 
     @Override
@@ -20,13 +22,13 @@ public class ReadHandler extends BaseOpsWorksCMHandler {
         initialize(proxy, request, callbackContext, logger);
 
         final DescribeServersResponse result;
-        final String serverName = model.getServerName();
+        final String serverName = model.getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
         callbackContext.incrementRetryTimes();
 
         log.info(String.format("Calling Describe Servers for ServerName %s", serverName));
 
         try {
-            result = client.describeServer();
+            result = client.describeServer(serverName);
             Server server = result.servers().get(0);
             addDescribeServerResponseAttributes(server);
             return ProgressEvent.defaultSuccessHandler(model);

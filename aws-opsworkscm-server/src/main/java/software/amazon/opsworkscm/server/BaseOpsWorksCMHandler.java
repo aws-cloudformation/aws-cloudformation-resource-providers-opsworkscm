@@ -37,7 +37,7 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
         this.request = request;
         this.model = request.getDesiredResourceState();
         this.oldModel = request.getPreviousResourceState();
-        this.callbackContext = callbackContext;
+        this.callbackContext = callbackContext == null ? new CallbackContext() : callbackContext;
         this.log = new LoggerWrapper(logger);
 
         setModelServerName();
@@ -48,7 +48,9 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
     }
 
     private void setModelServerName() {
-        if (StringUtils.isNullOrEmpty(model.getServerName())) {
+        if (oldModel != null && !StringUtils.isNullOrEmpty(oldModel.getServerName())) {
+            model.setServerName(oldModel.getServerName());
+        } else if (StringUtils.isNullOrEmpty(model.getServerName())) {
             log.log("RequestModel doesn't have the server name. Setting it using request identifier and client token");
             model.setServerName(
                     IdentifierUtils.generateResourceIdentifier(

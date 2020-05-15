@@ -21,21 +21,21 @@ public class UpdateHandler extends BaseOpsWorksCMHandler {
         initialize(proxy, request, callbackContext, logger);
 
         try {
-            if (!callbackContext.isUpdateTagComplete()) {
+            if (!this.callbackContext.isUpdateTagComplete()) {
                 return updateTags();
             }
-            if (!callbackContext.isUpdateServerComplete()) {
+            if (!this.callbackContext.isUpdateServerComplete()) {
                 return updateServer();
             }
-            return ProgressEvent.defaultSuccessHandler(model);
+            return ProgressEvent.defaultSuccessHandler(this.model);
         } catch (ResourceNotFoundException e) {
-            log.error(String.format("ResourceNotFoundException during update of server %s, with message %s", model.getServerName(), e.getMessage()), e);
+            log.error(String.format("ResourceNotFoundException during update of server %s, with message %s", this.model.getServerName(), e.getMessage()), e);
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.NotFound);
         } catch (InvalidStateException e) {
-            log.error(String.format("InvalidStateException during update of server %s, with message %s", model.getServerName(), e.getMessage()), e);
+            log.error(String.format("InvalidStateException during update of server %s, with message %s", this.model.getServerName(), e.getMessage()), e);
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.NotUpdatable);
         } catch (ValidationException e) {
-            log.error(String.format("ValidationException during update of server %s, with message %s", model.getServerName(), e.getMessage()), e);
+            log.error(String.format("ValidationException during update of server %s, with message %s", this.model.getServerName(), e.getMessage()), e);
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.InvalidRequest);
         }
     }
