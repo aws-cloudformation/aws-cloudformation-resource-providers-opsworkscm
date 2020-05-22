@@ -4,63 +4,89 @@
   "additionalProperties": false,
   "properties": {
     "KeyPair": {
-      "type": "string"
+      "type": "string",
+      "pattern": ".*",
+      "maxLength": 10000
     },
     "EngineVersion": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "ServiceRoleArn": {
-      "type": "string"
+      "type": "string",
+      "pattern": "arn:aws:iam::[0-9]{12}:role/.*",
+      "maxLength": 10000
     },
     "DisableAutomatedBackup": {
       "type": "boolean"
     },
     "BackupId": {
-      "type": "string"
+      "type": "string",
+      "pattern": "[a-zA-Z][a-zA-Z0-9\\-\\.\\:]*",
+      "maxLength": 79
     },
     "EngineModel": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "PreferredMaintenanceWindow": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^((Mon|Tue|Wed|Thu|Fri|Sat|Sun):)?([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+      "maxLength": 10000
     },
     "AssociatePublicIpAddress": {
       "type": "boolean"
     },
     "InstanceProfileArn": {
-      "type": "string"
+      "type": "string",
+      "pattern": "arn:aws:iam::[0-9]{12}:instance-profile/.*",
+      "maxLength": 10000
     },
     "CustomCertificate": {
-      "type": "string"
+      "type": "string",
+      "pattern": "(?s)\\s*-----BEGIN CERTIFICATE-----.+-----END CERTIFICATE-----\\s*",
+      "maxLength": 2097152
     },
     "PreferredBackupWindow": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^((Mon|Tue|Wed|Thu|Fri|Sat|Sun):)?([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+      "maxLength": 10000
     },
     "SecurityGroupIds": {
       "type": "array",
       "uniqueItems": false,
       "items": {
-        "type": "string"
+        "type": "string",
+        "maxLength": 10000
       }
     },
     "SubnetIds": {
       "type": "array",
       "uniqueItems": false,
       "items": {
-        "type": "string"
+        "type": "string",
+        "maxLength": 10000
       }
     },
     "CustomDomain": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^(((?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9])\\.)+((?!-)[A-Za-z0-9-]{1,62}[A-Za-z0-9])$",
+      "maxLength": 253
     },
     "Endpoint": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "CustomPrivateKey": {
-      "type": "string"
+      "type": "string",
+      "pattern": "(?ms)\\s*^-----BEGIN (?-s:.*)PRIVATE KEY-----$.*?^-----END (?-s:.*)PRIVATE KEY-----$\\s*",
+      "maxLength": 4096
     },
     "ServerName": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "pattern": "[a-zA-Z][a-zA-Z0-9\\-]*"
     },
     "EngineAttributes": {
       "type": "array",
@@ -70,16 +96,20 @@
       }
     },
     "BackupRetentionCount": {
-      "type": "integer"
+      "type": "integer",
+      "minLength": 1
     },
     "Id": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "Arn": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "InstanceType": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "Tags": {
       "type": "array",
@@ -89,7 +119,8 @@
       }
     },
     "Engine": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     }
   },
   "definitions": {
@@ -98,10 +129,14 @@
       "additionalProperties": false,
       "properties": {
         "Value": {
-          "type": "string"
+          "type": "string",
+          "pattern": "(?s).*",
+          "maxLength": 10000
         },
         "Name": {
-          "type": "string"
+          "type": "string",
+          "pattern": "(?s).*",
+          "maxLength": 10000
         }
       }
     },
@@ -110,10 +145,16 @@
       "additionalProperties": false,
       "properties": {
         "Value": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$",
+          "minLength": 0,
+          "maxLength": 256
         },
         "Key": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$",
+          "minLength": 1,
+          "maxLength": 128
         }
       },
       "required": [
