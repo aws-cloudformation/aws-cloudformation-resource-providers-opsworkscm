@@ -4,63 +4,78 @@
   "additionalProperties": false,
   "properties": {
     "KeyPair": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "EngineVersion": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "ServiceRoleArn": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "DisableAutomatedBackup": {
       "type": "boolean"
     },
     "BackupId": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "EngineModel": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "PreferredMaintenanceWindow": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "AssociatePublicIpAddress": {
       "type": "boolean"
     },
     "InstanceProfileArn": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "CustomCertificate": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "PreferredBackupWindow": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "SecurityGroupIds": {
       "type": "array",
       "uniqueItems": false,
       "items": {
-        "type": "string"
+        "type": "string",
+        "maxLength": 10000
       }
     },
     "SubnetIds": {
       "type": "array",
       "uniqueItems": false,
       "items": {
-        "type": "string"
+        "type": "string",
+        "maxLength": 10000
       }
     },
     "CustomDomain": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "Endpoint": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "CustomPrivateKey": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "ServerName": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "EngineAttributes": {
       "type": "array",
@@ -73,13 +88,16 @@
       "type": "integer"
     },
     "Id": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "Arn": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "InstanceType": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     },
     "Tags": {
       "type": "array",
@@ -89,7 +107,8 @@
       }
     },
     "Engine": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 10000
     }
   },
   "definitions": {
@@ -98,10 +117,12 @@
       "additionalProperties": false,
       "properties": {
         "Value": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 10000
         },
         "Name": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 10000
         }
       }
     },
@@ -110,10 +131,12 @@
       "additionalProperties": false,
       "properties": {
         "Value": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 10000
         },
         "Key": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 10000
         }
       },
       "required": [
