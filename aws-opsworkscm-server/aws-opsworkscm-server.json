@@ -5,6 +5,7 @@
   "properties": {
     "KeyPair": {
       "type": "string",
+      "pattern": ".*",
       "maxLength": 10000
     },
     "EngineVersion": {
@@ -13,6 +14,7 @@
     },
     "ServiceRoleArn": {
       "type": "string",
+      "pattern": "arn:aws:iam::[0-9]{12}:role/.*",
       "maxLength": 10000
     },
     "DisableAutomatedBackup": {
@@ -20,7 +22,8 @@
     },
     "BackupId": {
       "type": "string",
-      "maxLength": 10000
+      "pattern": "[a-zA-Z][a-zA-Z0-9\\-\\.\\:]*",
+      "maxLength": 79
     },
     "EngineModel": {
       "type": "string",
@@ -28,6 +31,7 @@
     },
     "PreferredMaintenanceWindow": {
       "type": "string",
+      "pattern": "^((Mon|Tue|Wed|Thu|Fri|Sat|Sun):)?([0-1][0-9]|2[0-3]):[0-5][0-9]$",
       "maxLength": 10000
     },
     "AssociatePublicIpAddress": {
@@ -35,14 +39,17 @@
     },
     "InstanceProfileArn": {
       "type": "string",
+      "pattern": "arn:aws:iam::[0-9]{12}:instance-profile/.*",
       "maxLength": 10000
     },
     "CustomCertificate": {
       "type": "string",
-      "maxLength": 10000
+      "pattern": "(?s)\\s*-----BEGIN CERTIFICATE-----.+-----END CERTIFICATE-----\\s*",
+      "maxLength": 2097152
     },
     "PreferredBackupWindow": {
       "type": "string",
+      "pattern": "^((Mon|Tue|Wed|Thu|Fri|Sat|Sun):)?([0-1][0-9]|2[0-3]):[0-5][0-9]$",
       "maxLength": 10000
     },
     "SecurityGroupIds": {
@@ -63,7 +70,8 @@
     },
     "CustomDomain": {
       "type": "string",
-      "maxLength": 10000
+      "pattern": "^(((?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9])\\.)+((?!-)[A-Za-z0-9-]{1,62}[A-Za-z0-9])$",
+      "maxLength": 253
     },
     "Endpoint": {
       "type": "string",
@@ -71,11 +79,14 @@
     },
     "CustomPrivateKey": {
       "type": "string",
-      "maxLength": 10000
+      "pattern": "(?ms)\\s*^-----BEGIN (?-s:.*)PRIVATE KEY-----$.*?^-----END (?-s:.*)PRIVATE KEY-----$\\s*",
+      "maxLength": 4096
     },
     "ServerName": {
       "type": "string",
-      "maxLength": 10000
+      "minLength": 1,
+      "maxLength": 40,
+      "pattern": "[a-zA-Z][a-zA-Z0-9\\-]*"
     },
     "EngineAttributes": {
       "type": "array",
@@ -85,7 +96,8 @@
       }
     },
     "BackupRetentionCount": {
-      "type": "integer"
+      "type": "integer",
+      "minLength": 1
     },
     "Id": {
       "type": "string",
@@ -118,10 +130,12 @@
       "properties": {
         "Value": {
           "type": "string",
+          "pattern": "(?s).*",
           "maxLength": 10000
         },
         "Name": {
           "type": "string",
+          "pattern": "(?s).*",
           "maxLength": 10000
         }
       }
@@ -132,11 +146,15 @@
       "properties": {
         "Value": {
           "type": "string",
-          "maxLength": 10000
+          "pattern": "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$",
+          "minLength": 0,
+          "maxLength": 256
         },
         "Key": {
           "type": "string",
-          "maxLength": 10000
+          "pattern": "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$",
+          "minLength": 1,
+          "maxLength": 128
         }
       },
       "required": [
