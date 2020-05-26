@@ -193,6 +193,10 @@
     "/properties/Endpoint",
     "/properties/Arn"
   ],
+  "writeOnlyProperties": [
+    "/properties/CustomPrivateKey",
+    "/properties/EngineAttributes"
+  ],
   "handlers": {
     "create": {
       "permissions": [
