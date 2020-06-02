@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.opsworkscm.model.InvalidStateException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
+import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -205,6 +206,33 @@ public class CreateHandlerTest {
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
         assertThat(response.getMessage()).isEqualTo("Internal Failure");
+    }
+
+    @Test
+    public void testCreateServerForwardsValidationException() {
+        ValidationException myException = ValidationException.builder().message("BadRequest").build();
+
+        doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+        assertThat(response.getMessage()).isEqualTo("BadRequest");
+    }
+
+    @Test
+    public void testCreateServerForwardsValidationExceptionStabilize() {
+        ValidationException myException = ValidationException.builder().message("BadRequest").build();
+
+        CallbackContext callbackContext = CallbackContext.builder()
+                .stabilizationRetryTimes(0)
+                .stabilizationStarted(true)
+                .build();
+
+        doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+        assertThat(response.getMessage()).isEqualTo("BadRequest");
     }
 
     @Test
