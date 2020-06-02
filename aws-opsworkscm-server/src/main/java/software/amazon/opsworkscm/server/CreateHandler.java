@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsExc
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.awssdk.services.opsworkscm.model.ServerStatus;
+import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -32,6 +33,9 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
         } catch (InvalidStateException e) {
             log.error(String.format("Service Side failure during create-server for %s.", this.model.getServerName()), e);
             return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InternalFailure, "Service Internal Failure");
+        } catch (ValidationException e) {
+            log.error(String.format("ValidationException during create-server for %s.", this.model.getServerName()), e);
+            return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InvalidRequest, e.getMessage());
         } catch (Exception e) {
             log.error(String.format("CreateHandler failure during create-server for %s.", this.model.getServerName()), e);
             return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InternalFailure, "Internal Failure");

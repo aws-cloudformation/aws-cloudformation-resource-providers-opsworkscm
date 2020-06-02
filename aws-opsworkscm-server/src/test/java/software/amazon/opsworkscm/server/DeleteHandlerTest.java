@@ -206,6 +206,7 @@ public class DeleteHandlerTest {
                 = handler.handleRequest(proxy, request, callbackContext, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+        assertThat(response.getMessage()).isEqualTo("come on..");
     }
 
     @Test
@@ -216,6 +217,7 @@ public class DeleteHandlerTest {
                 = handler.handleRequest(proxy, request, callbackContext, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+        assertThat(response.getMessage()).isEqualTo("come on..");
     }
 
     @Test
