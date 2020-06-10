@@ -2,6 +2,7 @@ package software.amazon.opsworkscm.server;
 
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
 import software.amazon.awssdk.services.opsworkscm.model.InvalidStateException;
+import software.amazon.awssdk.services.opsworkscm.model.OpsWorksCmException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
@@ -33,7 +34,7 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
         } catch (InvalidStateException e) {
             log.error(String.format("Service Side failure during create-server for %s.", this.model.getServerName()), e);
             return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InternalFailure, "Service Internal Failure");
-        } catch (ValidationException e) {
+        } catch (OpsWorksCmException e) {
             log.error(String.format("ValidationException during create-server for %s.", this.model.getServerName()), e);
             return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InvalidRequest, e.getMessage());
         } catch (Exception e) {

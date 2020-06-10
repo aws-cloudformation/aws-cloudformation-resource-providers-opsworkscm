@@ -1,8 +1,10 @@
 package software.amazon.opsworkscm.server;
 
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.opsworkscm.model.CreateServerResponse;
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
 import software.amazon.awssdk.services.opsworkscm.model.InvalidStateException;
+import software.amazon.awssdk.services.opsworkscm.model.OpsWorksCmException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
@@ -217,6 +219,17 @@ public class CreateHandlerTest {
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
         assertThat(response.getMessage()).isEqualTo("BadRequest");
+    }
+
+    @Test
+    public void testCreateServerForwardsOpsWorksCmException() {
+        OpsWorksCmException myException = (OpsWorksCmException) OpsWorksCmException.builder().message("Cross-account pass role is not allowed.").build();
+
+        doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+        assertThat(response.getMessage()).isEqualTo("Cross-account pass role is not allowed.");
     }
 
     @Test
