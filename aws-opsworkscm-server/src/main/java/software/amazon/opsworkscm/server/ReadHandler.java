@@ -23,7 +23,7 @@ public class ReadHandler extends BaseOpsWorksCMHandler {
 
         final DescribeServersResponse result;
         final String serverName = model.getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
-        callbackContext.incrementRetryTimes();
+        this.callbackContext.incrementRetryTimes();
 
         log.info(String.format("Calling Describe Servers for ServerName %s", serverName));
 
