@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static software.amazon.opsworkscm.server.ResourceModel.IDENTIFIER_KEY_SERVERNAME;
 
 @ExtendWith(MockitoExtension.class)
 public class DeleteHandlerTest {
@@ -182,7 +183,7 @@ public class DeleteHandlerTest {
     @Test
     public void testExecuteOperationStillInProgress() {
         doThrow(ValidationException.builder().message("Cannot delete the server '" + SERVER_NAME + "'. The current operation on the server is still in progress." +
-                " (Service: AWSOpsWorksCM; Status Code: 400; Error Code: ValidationException; Request ID: " + request.getClientRequestToken() + ")").build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+                " (Service: OpsWorksCm, Status Code: 400, Request ID: " + request.getClientRequestToken() + ")").build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
         final ProgressEvent<ResourceModel, CallbackContext> response
                 = handler.handleRequest(proxy, request, callbackContext, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
@@ -192,6 +193,28 @@ public class DeleteHandlerTest {
     public void testStabilizeOperationStillInProgress() {
         callbackContext.setStabilizationStarted(true);
         doThrow(ValidationException.builder().message("Cannot delete the server '" + SERVER_NAME + "'. The current operation on the server is still in progress." +
+                " (Service: OpsWorksCM, Status Code: 400, Request ID: " + request.getClientRequestToken() + ")").build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = handler.handleRequest(proxy, request, callbackContext, logger);
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+
+    }
+
+    @Test
+    public void testExecuteOperationStillInProgressTooLongServerName() {
+        request.getDesiredResourceState().setServerName("OpsWorksCMServerHasAVeryLongServerNameInFactItIsTooLongBecauseTheMaxIsFourty");
+        doThrow(ValidationException.builder().message("Cannot delete the server 'OpsWorksCMServerHasAVeryLongServerNameIn'. The current operation on the server is still in progress." +
+                " (Service: AWSOpsWorksCM; Status Code: 400; Error Code: ValidationException; Request ID: " + request.getClientRequestToken() + ")").build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = handler.handleRequest(proxy, request, callbackContext, logger);
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+    }
+
+    @Test
+    public void testStabilizeOperationStillInProgressTooLongServerName() {
+        callbackContext.setStabilizationStarted(true);
+        request.getDesiredResourceState().setServerName("OpsWorksCMServerHasAVeryLongServerNameInFactItIsTooLongBecauseTheMaxIsFourty");
+        doThrow(ValidationException.builder().message("Cannot delete the server 'OpsWorksCMServerHasAVeryLongServerNameIn'. The current operation on the server is still in progress." +
                 " (Service: AWSOpsWorksCM; Status Code: 400; Error Code: ValidationException; Request ID: " + request.getClientRequestToken() + ")").build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
         final ProgressEvent<ResourceModel, CallbackContext> response
                 = handler.handleRequest(proxy, request, callbackContext, logger);
