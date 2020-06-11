@@ -17,8 +17,7 @@ import static software.amazon.opsworkscm.server.ResourceModel.IDENTIFIER_KEY_SER
 public class DeleteHandler extends BaseOpsWorksCMHandler {
 
     public static final String SERVER_DELETION_FAILED_MESSAGE = "Server %s deletion has failed with reason: %s";
-    public static final String SERVER_OPERATION_STILL_IN_PROGRESS_MESSAGE = "Cannot delete the server '%s'. The current operation on the server is still in progress\\." +
-            " \\(Service: AWSOpsWorksCM; Status Code: 400; Error Code: ValidationException; Request ID: .*\\)";
+    public static final String SERVER_OPERATION_STILL_IN_PROGRESS_MESSAGE = "Cannot delete the server '%s'. The current operation on the server is still in progress\\..*";
 
     @Override
     public ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -29,6 +28,8 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
 
         initialize(proxy, request, callbackContext, logger);
 
+        final String serverName = model.getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
+
         try {
             if (this.callbackContext.isStabilizationStarted()) {
                 return handleStabilize();
@@ -36,19 +37,19 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
                 return handleExecute();
             }
         } catch (InvalidStateException e) {
-            log.error(String.format("Service Side failure during delete-server for %s.", this.model.getServerName()), e);
+            log.error(String.format("Service Side failure during delete-server for %s.", serverName), e);
             return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.NotStabilized, "Service Internal Failure");
         } catch (ResourceNotFoundException e) {
-            return handleServerNotFound(this.model.getServerName());
+            return handleServerNotFound(serverName);
         } catch (ValidationException e) {
-            log.error(String.format("ValidationException during delete-server of %s.", this.model.getServerName()), e);
-            if (e.getMessage().matches(String.format(SERVER_OPERATION_STILL_IN_PROGRESS_MESSAGE, this.model.getServerName()))) {
-                log.error(String.format("Server operation still in progress during delete-server of %s.", this.model.getServerName()));
+            log.error(String.format("ValidationException during delete-server of %s.", serverName), e);
+            if (e.getMessage().matches(String.format(SERVER_OPERATION_STILL_IN_PROGRESS_MESSAGE, serverName))) {
+                log.error(String.format("Server operation still in progress during delete-server of %s.", serverName));
                 return ProgressEvent.defaultInProgressHandler(this.callbackContext, CALLBACK_DELAY_SECONDS, this.model);
             }
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.InvalidRequest);
         } catch (Exception e) {
-            log.error(String.format("CreateHandler failure during delete-server for %s.", this.model.getServerName()), e);
+            log.error(String.format("CreateHandler failure during delete-server for %s.", serverName), e);
             return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InternalFailure, "Internal Failure");
         }
     }
