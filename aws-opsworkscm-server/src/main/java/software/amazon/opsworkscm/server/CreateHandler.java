@@ -7,7 +7,6 @@ import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsExc
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.awssdk.services.opsworkscm.model.ServerStatus;
-import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -23,46 +22,49 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
             final CallbackContext callbackContext,
             final Logger logger) {
 
-        initialize(proxy, request, callbackContext, logger);
+        InvocationContext context = initializeContext(proxy, request, callbackContext, logger);
 
         try {
-            if (this.callbackContext.isStabilizationStarted()) {
-                return handleStabilize();
+            if (context.getCallbackContext().isStabilizationStarted()) {
+                return handleStabilize(context);
             } else {
-                return handleExecute();
+                return handleExecute(context);
             }
         } catch (InvalidStateException e) {
-            log.error(String.format("Service Side failure during create-server for %s.", this.model.getServerName()), e);
-            return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InternalFailure, "Service Internal Failure");
+            log.error(String.format("Service Side failure during create-server for %s.", context.getModel().getServerName()), e);
+            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.InternalFailure, "Service Internal Failure");
         } catch (OpsWorksCmException e) {
-            log.error(String.format("ValidationException during create-server for %s.", this.model.getServerName()), e);
-            return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InvalidRequest, e.getMessage());
+            log.error(String.format("ValidationException during create-server for %s.", context.getModel().getServerName()), e);
+            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.InvalidRequest, e.getMessage());
         } catch (Exception e) {
-            log.error(String.format("CreateHandler failure during create-server for %s.", this.model.getServerName()), e);
-            return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InternalFailure, "Internal Failure");
+            log.error(String.format("CreateHandler failure during create-server for %s.", context.getModel().getServerName()), e);
+            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.InternalFailure, "Internal Failure");
         }
     }
 
-    private ProgressEvent<ResourceModel, CallbackContext> handleExecute() {
+    private ProgressEvent<ResourceModel, CallbackContext> handleExecute(InvocationContext context) {
         try {
             client.createServer();
-            callbackContext.setStabilizationStarted(true);
-            return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
+            context.getCallbackContext().setStabilizationStarted(true);
+            return ProgressEvent.defaultInProgressHandler(context.getCallbackContext(), CALLBACK_DELAY_SECONDS, context.getModel());
         } catch (ResourceAlreadyExistsException e) {
-            log.info(String.format("Server %s already exists.", model.getServerName()));
+            log.info(String.format("Server %s already exists.", context.getModel().getServerName()));
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.AlreadyExists);
         }
     }
 
-    private ProgressEvent<ResourceModel, CallbackContext> handleStabilize() {
+    private ProgressEvent<ResourceModel, CallbackContext> handleStabilize(InvocationContext context) {
         final DescribeServersResponse result;
+        ResourceModel model = context.getModel();
+        CallbackContext callbackContext = context.getCallbackContext();
+
         final String serverName = model.getServerName();
         callbackContext.incrementRetryTimes();
 
         try {
             result = client.describeServer(model.getServerName());
         } catch (final ResourceNotFoundException e) {
-            return handleServerNotFound(serverName);
+            return handleServerNotFound(context, serverName);
         }
 
         if (result == null || result.servers() == null) {
@@ -71,7 +73,7 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
         }
 
         if (result.servers().size() < 1) {
-            return handleServerNotFound(serverName);
+            return handleServerNotFound(context, serverName);
         }
         Server server = result.servers().get(0);
 
@@ -101,11 +103,11 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
     }
 
 
-    private ProgressEvent<ResourceModel, CallbackContext> handleServerNotFound(final String serverName) {
+    private ProgressEvent<ResourceModel, CallbackContext> handleServerNotFound(InvocationContext context, final String serverName) {
         log.info(String.format("Server %s failed to CREATE because it was not found.", serverName));
         return ProgressEvent.failed(
-                model,
-                callbackContext,
+                context.getModel(),
+                context.getCallbackContext(),
                 HandlerErrorCode.NotFound,
                 String.format("Server %s was deleted.", serverName));
     }

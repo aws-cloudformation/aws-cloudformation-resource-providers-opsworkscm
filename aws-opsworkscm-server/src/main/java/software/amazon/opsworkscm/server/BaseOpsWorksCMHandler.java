@@ -11,13 +11,8 @@ import software.amazon.opsworkscm.server.utils.LoggerWrapper;
 
 abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext> {
 
-
-    protected ResourceModel model;
-    protected ResourceModel oldModel;
-    protected CallbackContext callbackContext;
-    protected LoggerWrapper log;
-    protected ResourceHandlerRequest<ResourceModel> request;
     protected ClientWrapper client;
+    protected LoggerWrapper log;
 
     protected static int NO_CALLBACK_DELAY = 0;
     protected static int CALLBACK_DELAY_SECONDS = 60;
@@ -30,32 +25,36 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
             final CallbackContext callbackContext,
             final Logger logger);
 
-    protected void initialize(final AmazonWebServicesClientProxy proxy,
-                              final ResourceHandlerRequest<ResourceModel> request,
-                              final CallbackContext callbackContext,
-                              final Logger logger) {
-        this.request = request;
-        this.model = request.getDesiredResourceState();
-        this.oldModel = request.getPreviousResourceState();
-        this.callbackContext = callbackContext == null ? new CallbackContext() : callbackContext;
+    protected InvocationContext initializeContext(final AmazonWebServicesClientProxy proxy,
+                                     final ResourceHandlerRequest<ResourceModel> request,
+                                     final CallbackContext callbackContext,
+                                     final Logger logger) {
+        InvocationContext context = new InvocationContext();
+        context.setRequest(request);
+        context.setModel(request.getDesiredResourceState());
+        context.setOldModel(request.getPreviousResourceState());
+        context.setCallbackContext(callbackContext == null ? new CallbackContext() : callbackContext);
         this.log = new LoggerWrapper(logger);
 
-        setModelServerName();
-        setModelId();
+        setModelServerName(context);
+        setModelId(context);
 
-        final OpsWorksCmClient opsWorksCmClientclient = ClientBuilder.getClient();
-        this.client = new ClientWrapper(opsWorksCmClientclient, model, oldModel, proxy, log);
+        final OpsWorksCmClient opsWorksCmClient = ClientBuilder.getClient();
+        this.client = new ClientWrapper(opsWorksCmClient, context.getModel(), context.getOldModel(), proxy, this.log);
+        return context;
     }
 
-    private void setModelServerName() {
+    private void setModelServerName(InvocationContext context) {
+        ResourceModel model = context.getModel();
+        ResourceModel oldModel = context.getOldModel();
         if (oldModel != null && !StringUtils.isNullOrEmpty(oldModel.getServerName())) {
             model.setServerName(oldModel.getServerName());
         } else if (StringUtils.isNullOrEmpty(model.getServerName())) {
             log.log("RequestModel doesn't have the server name. Setting it using request identifier and client token");
             model.setServerName(
                     IdentifierUtils.generateResourceIdentifier(
-                            request.getLogicalResourceIdentifier(),
-                            request.getClientRequestToken(),
+                            context.getRequest().getLogicalResourceIdentifier(),
+                            context.getRequest().getClientRequestToken(),
                             MAX_LENGTH_CONFIGURATION_SET_NAME
                     )
             );
@@ -65,12 +64,12 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
         }
     }
 
-    private void setModelId() {
-        if (model.getId() == null) {
+    private void setModelId(InvocationContext context) {
+        if (context.getModel().getId() == null) {
             log.log("RequestModel doesn't have the model id. Setting it using request identifier and client token");
-            model.setId(IdentifierUtils.generateResourceIdentifier(
-                    request.getLogicalResourceIdentifier(),
-                    request.getClientRequestToken()
+            context.getModel().setId(IdentifierUtils.generateResourceIdentifier(
+                    context.getRequest().getLogicalResourceIdentifier(),
+                    context.getRequest().getClientRequestToken()
             ));
         }
     }

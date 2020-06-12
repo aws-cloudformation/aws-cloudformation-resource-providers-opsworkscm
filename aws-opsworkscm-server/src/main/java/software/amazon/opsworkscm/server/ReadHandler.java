@@ -19,27 +19,27 @@ public class ReadHandler extends BaseOpsWorksCMHandler {
         final CallbackContext callbackContext,
         final Logger logger) {
 
-        initialize(proxy, request, callbackContext, logger);
+        InvocationContext context = initializeContext(proxy, request, callbackContext, logger);
 
         final DescribeServersResponse result;
-        final String serverName = model.getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
-        this.callbackContext.incrementRetryTimes();
+        final String serverName = context.getModel().getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
+        context.getCallbackContext().incrementRetryTimes();
 
         log.info(String.format("Calling Describe Servers for ServerName %s", serverName));
 
         try {
             result = client.describeServer(serverName);
             Server server = result.servers().get(0);
-            addDescribeServerResponseAttributes(server);
-            return ProgressEvent.defaultSuccessHandler(model);
+            addDescribeServerResponseAttributes(context, server);
+            return ProgressEvent.defaultSuccessHandler(context.getModel());
         } catch (final software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException e) {
             log.error(String.format("Server %s was not found.", serverName), e);
             throw new ResourceNotFoundException(String.format("Server %s was not found.", serverName), e.getMessage());
         }
     }
 
-    private void addDescribeServerResponseAttributes(final Server server) {
-        model.setEndpoint(server.endpoint());
-        model.setArn(server.serverArn());
+    private void addDescribeServerResponseAttributes(InvocationContext context, final Server server) {
+        context.getModel().setEndpoint(server.endpoint());
+        context.getModel().setArn(server.serverArn());
     }
 }

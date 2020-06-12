@@ -23,45 +23,47 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
     public ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
             final ResourceHandlerRequest<ResourceModel> request,
-            final CallbackContext callbackContext,
+            final CallbackContext callBackContext,
             final Logger logger) {
 
-        initialize(proxy, request, callbackContext, logger);
+        InvocationContext context = initializeContext(proxy, request, callBackContext, logger);
 
-        final String serverName = model.getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
+        final String serverName = context.getModel().getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
 
         try {
-            if (this.callbackContext.isStabilizationStarted()) {
-                return handleStabilize();
+            if (context.getCallbackContext().isStabilizationStarted()) {
+                return handleStabilize(context);
             } else {
-                return handleExecute();
+                return handleExecute(context);
             }
         } catch (InvalidStateException e) {
             log.error(String.format("Service Side failure during delete-server for %s.", serverName), e);
-            return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.NotStabilized, "Service Internal Failure");
+            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.NotStabilized, "Service Internal Failure");
         } catch (ResourceNotFoundException e) {
-            return handleServerNotFound(serverName);
+            return handleServerNotFound(context, serverName);
         } catch (ValidationException e) {
             log.error(String.format("ValidationException during delete-server of %s.", serverName), e);
             if (e.getMessage().matches(String.format(SERVER_OPERATION_STILL_IN_PROGRESS_MESSAGE, serverName))) {
                 log.error(String.format("Server operation still in progress during delete-server of %s.", serverName));
-                return ProgressEvent.defaultInProgressHandler(this.callbackContext, CALLBACK_DELAY_SECONDS, this.model);
+                return ProgressEvent.defaultInProgressHandler(context.getCallbackContext(), CALLBACK_DELAY_SECONDS, context.getModel());
             }
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.InvalidRequest);
         } catch (Exception e) {
             log.error(String.format("CreateHandler failure during delete-server for %s.", serverName), e);
-            return ProgressEvent.failed(this.model, this.callbackContext, HandlerErrorCode.InternalFailure, "Internal Failure");
+            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.InternalFailure, "Internal Failure");
         }
     }
 
-    private ProgressEvent<ResourceModel, CallbackContext> handleExecute() {
+    private ProgressEvent<ResourceModel, CallbackContext> handleExecute(InvocationContext context) {
         client.deleteServer();
-        callbackContext.setStabilizationStarted(true);
-        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
+        context.getCallbackContext().setStabilizationStarted(true);
+        return ProgressEvent.defaultInProgressHandler(context.getCallbackContext(), CALLBACK_DELAY_SECONDS, context.getModel());
     }
 
-    private ProgressEvent<ResourceModel, CallbackContext> handleStabilize() {
+    private ProgressEvent<ResourceModel, CallbackContext> handleStabilize(InvocationContext context) {
         final DescribeServersResponse result;
+        ResourceModel model = context.getModel();
+        CallbackContext callbackContext = context.getCallbackContext();
         String serverName = model.getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
         callbackContext.incrementRetryTimes();
 
@@ -73,7 +75,7 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
         }
 
         if (result.servers().size() < 1) {
-            return handleServerNotFound(serverName);
+            return handleServerNotFound(context, serverName);
         }
         Server server = result.servers().get(0);
 
@@ -94,8 +96,8 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
         }
     }
 
-    private ProgressEvent<ResourceModel, CallbackContext> handleServerNotFound(final String serverName) {
+    private ProgressEvent<ResourceModel, CallbackContext> handleServerNotFound(InvocationContext context, final String serverName) {
         log.info(String.format("Server %s deleted successfully.", serverName));
-        return ProgressEvent.defaultSuccessHandler(model);
+        return ProgressEvent.defaultSuccessHandler(context.getModel());
     }
 }
