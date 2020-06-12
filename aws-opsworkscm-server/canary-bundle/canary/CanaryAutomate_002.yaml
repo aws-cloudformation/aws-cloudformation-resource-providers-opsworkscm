@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Canary template for OpsWorksCM::Server Update operation
+Resources:
+  OpsWorksCanaryServer:
+    Type: AWS::OpsWorksCM::Server
+    Properties:
+      BackupRetentionCount: 6
+      DisableAutomatedBackup: True
+      Engine: 'ChefAutomate'
+      EngineVersion: '2'
+      EngineModel: 'Single'
+      InstanceProfileArn:
+        Fn::ImportValue:
+          Fn::Sub: "CanaryInstanceProfileArn"
+      InstanceType: 'm4.large'
+      PreferredBackupWindow: '05:00'
+      PreferredMaintenanceWindow: 'Wed:05:00'
+      ServiceRoleArn:
+        Fn::ImportValue:
+          Fn::Sub: "CanaryServiceRoleArn"

@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM Resources for the AWS OpsWorks Managed Server.
+Resources:
+  CanaryInstanceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      #Name needs "aws-opsworks-cm-" as prefix
+      RoleName: "aws-opsworks-cm-CanaryInstanceRole"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      - arn:aws:iam::aws:policy/AWSOpsWorksCMInstanceProfileRole
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - "sts:AssumeRole"
+          Effect: "Allow"
+          Principal:
+            Service:
+            - "ec2.amazonaws.com"
+        Version: "2012-10-17"
+      Path: "/service-role/"
+  CanaryInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+      - {Ref: CanaryInstanceRole}
+      #Name needs "aws-opsworks-cm-" as prefix
+      InstanceProfileName: "aws-opsworks-cm-CanaryInstanceProfile"
+  CanaryServiceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      #Name needs "aws-opsworks-cm-" as prefix
+      RoleName: "aws-opsworks-cm-CanaryServiceRole"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSOpsWorksCMServiceRole
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - "sts:AssumeRole"
+          Effect: "Allow"
+          Principal:
+            Service:
+            - "opsworks-cm.amazonaws.com"
+        Version: "2012-10-17"
+      Path: "/service-role/"
+Outputs:
+  CanaryInstanceRoleArn:
+    Description: Arn of the InstanceRole
+    Value: Fn::GetAtt [CanaryInstanceRole, Arn]
+    Export:
+      Name: "CanaryInstanceRoleArn"
+  CanaryInstanceProfileArn:
+    Description: Arn of the InstanceProfile
+    Value: Fn::GetAtt [CanaryInstanceProfile, Arn]
+    Export:
+      Name: "CanaryInstanceProfileArn"
+  CanaryServiceRoleArn:
+    Description: Arn of the ServiceRole
+    Value: Fn::GetAtt [CanaryServiceRole, Arn]
+    Export:
+      Name: "CanaryServiceRoleArn"
