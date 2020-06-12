@@ -18,38 +18,38 @@ public class UpdateHandler extends BaseOpsWorksCMHandler {
             final CallbackContext callbackContext,
             final Logger logger) {
 
-        initialize(proxy, request, callbackContext, logger);
+        InvocationContext context = initializeContext(proxy, request, callbackContext, logger);
 
         try {
-            if (!this.callbackContext.isUpdateTagComplete()) {
-                return updateTags();
+            if (!context.getCallbackContext().isUpdateTagComplete()) {
+                return updateTags(context);
             }
-            if (!this.callbackContext.isUpdateServerComplete()) {
-                return updateServer();
+            if (!context.getCallbackContext().isUpdateServerComplete()) {
+                return updateServer(context);
             }
-            return ProgressEvent.defaultSuccessHandler(this.model);
+            return ProgressEvent.defaultSuccessHandler(context.getModel());
         } catch (ResourceNotFoundException e) {
-            log.error(String.format("ResourceNotFoundException during update of server %s, with message %s", this.model.getServerName(), e.getMessage()), e);
+            log.error(String.format("ResourceNotFoundException during update of server %s, with message %s", context.getModel().getServerName(), e.getMessage()), e);
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.NotFound);
         } catch (InvalidStateException e) {
-            log.error(String.format("InvalidStateException during update of server %s, with message %s", this.model.getServerName(), e.getMessage()), e);
+            log.error(String.format("InvalidStateException during update of server %s, with message %s", context.getModel().getServerName(), e.getMessage()), e);
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.NotUpdatable);
         } catch (ValidationException e) {
-            log.error(String.format("ValidationException during update of server %s, with message %s", this.model.getServerName(), e.getMessage()), e);
+            log.error(String.format("ValidationException during update of server %s, with message %s", context.getModel().getServerName(), e.getMessage()), e);
             return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.InvalidRequest);
         }
     }
 
-    private ProgressEvent<ResourceModel, CallbackContext> updateTags() {
+    private ProgressEvent<ResourceModel, CallbackContext> updateTags(InvocationContext context) {
         client.untagServer();
         client.tagServer();
-        callbackContext.setUpdateTagComplete(true);
-        return ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, model);
+        context.getCallbackContext().setUpdateTagComplete(true);
+        return ProgressEvent.defaultInProgressHandler(context.getCallbackContext(), NO_CALLBACK_DELAY, context.getModel());
     }
 
-    private ProgressEvent<ResourceModel, CallbackContext> updateServer() {
+    private ProgressEvent<ResourceModel, CallbackContext> updateServer(InvocationContext context) {
         client.updateServer();
-        callbackContext.setUpdateServerComplete(true);
-        return ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, model);
+        context.getCallbackContext().setUpdateServerComplete(true);
+        return ProgressEvent.defaultInProgressHandler(context.getCallbackContext(), NO_CALLBACK_DELAY, context.getModel());
     }
 }

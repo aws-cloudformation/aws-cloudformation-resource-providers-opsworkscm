@@ -17,9 +17,7 @@ public class ListHandler extends BaseHandler<CallbackContext> {
 
     private static final int NO_CALLBACK_DELAY = 0;
 
-    CallbackContext callbackContext;
     LoggerWrapper log;
-    ResourceHandlerRequest<ResourceModel> request;
     ClientWrapper client;
 
     @Override
@@ -31,8 +29,8 @@ public class ListHandler extends BaseHandler<CallbackContext> {
 
         this.log = new LoggerWrapper(logger);
 
-        final OpsWorksCmClient opsWorksCmClientclient = ClientBuilder.getClient();
-        this.client = new ClientWrapper(opsWorksCmClientclient, request.getDesiredResourceState(), request.getPreviousResourceState(), proxy, log);
+        final OpsWorksCmClient opsWorksCmClient = ClientBuilder.getClient();
+        this.client = new ClientWrapper(opsWorksCmClient, request.getDesiredResourceState(), request.getPreviousResourceState(), proxy, log);
 
         log.info("Calling Describe Servers with no ServerName");
 
