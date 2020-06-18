@@ -6,7 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
+import software.amazon.awssdk.services.opsworkscm.model.OpsWorksCmException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
+import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
@@ -119,6 +122,19 @@ public class ReadHandlerTest {
             handler.handleRequest(proxy, request, callbackContext, logger);
         } catch (CfnNotFoundException e) {
             assertThat(e.getCause().getMessage()).isEqualTo(exceptionMessage);
+        }
+    }
+
+    @Test
+    public void testOtherException() {
+        String exceptionMessage = "Cross-account pass role is not allowed.";
+        OpsWorksCmException myException = (OpsWorksCmException) OpsWorksCmException.builder().message(exceptionMessage).build();
+
+        doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnGeneralServiceException e) {
+            assertThat(e.getMessage()).isEqualTo("Error occurred during operation '" + exceptionMessage + "'.");
         }
     }
 

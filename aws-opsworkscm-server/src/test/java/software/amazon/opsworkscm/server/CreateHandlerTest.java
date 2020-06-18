@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.opsworkscm.model.CreateServerResponse;
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
 import software.amazon.awssdk.services.opsworkscm.model.InvalidStateException;
+import software.amazon.awssdk.services.opsworkscm.model.LimitExceededException;
 import software.amazon.awssdk.services.opsworkscm.model.OpsWorksCmException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
@@ -17,6 +18,7 @@ import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotStabilizedException;
+import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -259,6 +261,37 @@ public class CreateHandlerTest {
             handler.handleRequest(proxy, request, callbackContext, logger);
         } catch (CfnInvalidRequestException e) {
             assertThat(e.getMessage()).isEqualTo("Invalid request provided: " + exceptionMessage);
+        }
+    }
+
+    @Test
+    public void testCreateServerForwardsLimitExceededException() {
+        String exceptionMessage = "Only allowed 1337 servers";
+        LimitExceededException myException = LimitExceededException.builder().message(exceptionMessage).build();
+
+        doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnServiceLimitExceededException e) {
+            assertThat(e.getMessage()).isEqualTo("Limit exceeded for resource of type 'OpsWorksCM::Server'. Reason: " + exceptionMessage);
+        }
+    }
+
+    @Test
+    public void testCreateServerForwardsLimitExceededExceptionStabilize() {
+        String exceptionMessage = "Only allowed 1337 servers";
+        LimitExceededException myException = LimitExceededException.builder().message(exceptionMessage).build();
+
+        CallbackContext callbackContext = CallbackContext.builder()
+                .stabilizationRetryTimes(0)
+                .stabilizationStarted(true)
+                .build();
+
+        doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnServiceLimitExceededException e) {
+            assertThat(e.getMessage()).isEqualTo("Limit exceeded for resource of type 'OpsWorksCM::Server'. Reason: " + exceptionMessage);
         }
     }
 

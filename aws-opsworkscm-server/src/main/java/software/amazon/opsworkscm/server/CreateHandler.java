@@ -2,15 +2,20 @@ package software.amazon.opsworkscm.server;
 
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
 import software.amazon.awssdk.services.opsworkscm.model.InvalidStateException;
+import software.amazon.awssdk.services.opsworkscm.model.LimitExceededException;
 import software.amazon.awssdk.services.opsworkscm.model.OpsWorksCmException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.awssdk.services.opsworkscm.model.ServerStatus;
+import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
+import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotStabilizedException;
+import software.amazon.cloudformation.exceptions.CfnResourceConflictException;
+import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -43,8 +48,14 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
         } catch (InvalidStateException e) {
             log.error(String.format("Service Side failure during create-server for %s.", serverName), e);
             throw new CfnNotStabilizedException(resourceTypeName, serverName);
-        } catch (OpsWorksCmException e) {
+        } catch (ValidationException e) {
             log.error(String.format("ValidationException during create-server for %s.", serverName), e);
+            throw new CfnInvalidRequestException(e.getMessage(), e);
+        } catch (LimitExceededException e) {
+            log.error(String.format("LimitExceededException during create-server for %s.", serverName), e);
+            throw new CfnServiceLimitExceededException(resourceTypeName, e.getMessage());
+        } catch (OpsWorksCmException e) {
+            log.error(String.format("OpsWorksCmException during create-server for %s.", serverName), e);
             throw new CfnInvalidRequestException(e.getMessage(), e);
         } catch (Exception e) {
             log.error(String.format("CreateHandler failure during create-server for %s.", context.getModel().getServerName()), e);

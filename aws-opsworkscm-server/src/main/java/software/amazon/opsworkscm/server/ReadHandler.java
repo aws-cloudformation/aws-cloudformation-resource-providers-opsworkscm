@@ -1,7 +1,9 @@
 package software.amazon.opsworkscm.server;
 
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
+import software.amazon.awssdk.services.opsworkscm.model.OpsWorksCmException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
+import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -36,6 +38,9 @@ public class ReadHandler extends BaseOpsWorksCMHandler {
         } catch (final software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException e) {
             log.error(String.format("Server %s was not found.", serverName), e);
             throw new CfnNotFoundException(e);
+        } catch (final OpsWorksCmException e) {
+            log.error(String.format("Server %s was not found.", serverName), e);
+            throw new CfnGeneralServiceException(e.getMessage());
         } catch (Exception e) {
             log.error(String.format("ReadHandler failure during delete-server for %s.", serverName), e);
             throw new CfnInternalFailureException(e);
