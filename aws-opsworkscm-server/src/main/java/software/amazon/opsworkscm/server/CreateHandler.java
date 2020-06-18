@@ -7,11 +7,17 @@ import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsExc
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.awssdk.services.opsworkscm.model.ServerStatus;
+import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotStabilizedException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import static software.amazon.opsworkscm.server.ResourceModel.IDENTIFIER_KEY_SERVERNAME;
 
 public class CreateHandler extends BaseOpsWorksCMHandler {
 
@@ -23,6 +29,7 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
             final Logger logger) {
 
         InvocationContext context = initializeContext(proxy, request, callbackContext, logger);
+        String serverName = context.getModel().getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
 
         try {
             if (context.getCallbackContext().isStabilizationStarted()) {
@@ -30,27 +37,25 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
             } else {
                 return handleExecute(context);
             }
+        } catch (ResourceAlreadyExistsException e) {
+            log.info(String.format("Server %s already exists.", serverName));
+            throw new CfnAlreadyExistsException(resourceTypeName, serverName);
         } catch (InvalidStateException e) {
-            log.error(String.format("Service Side failure during create-server for %s.", context.getModel().getServerName()), e);
-            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.InternalFailure, "Service Internal Failure");
+            log.error(String.format("Service Side failure during create-server for %s.", serverName), e);
+            throw new CfnNotStabilizedException(resourceTypeName, serverName);
         } catch (OpsWorksCmException e) {
-            log.error(String.format("ValidationException during create-server for %s.", context.getModel().getServerName()), e);
-            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.InvalidRequest, e.getMessage());
+            log.error(String.format("ValidationException during create-server for %s.", serverName), e);
+            throw new CfnInvalidRequestException(e.getMessage(), e);
         } catch (Exception e) {
             log.error(String.format("CreateHandler failure during create-server for %s.", context.getModel().getServerName()), e);
-            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.InternalFailure, "Internal Failure");
+            throw new CfnInternalFailureException();
         }
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> handleExecute(InvocationContext context) {
-        try {
-            client.createServer();
-            context.getCallbackContext().setStabilizationStarted(true);
-            return ProgressEvent.defaultInProgressHandler(context.getCallbackContext(), CALLBACK_DELAY_SECONDS, context.getModel());
-        } catch (ResourceAlreadyExistsException e) {
-            log.info(String.format("Server %s already exists.", context.getModel().getServerName()));
-            return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.AlreadyExists);
-        }
+        client.createServer();
+        context.getCallbackContext().setStabilizationStarted(true);
+        return ProgressEvent.defaultInProgressHandler(context.getCallbackContext(), CALLBACK_DELAY_SECONDS, context.getModel());
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> handleStabilize(InvocationContext context) {

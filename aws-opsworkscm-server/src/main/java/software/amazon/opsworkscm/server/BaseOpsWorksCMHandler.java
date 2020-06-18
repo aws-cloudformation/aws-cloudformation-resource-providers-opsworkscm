@@ -11,6 +11,8 @@ import software.amazon.opsworkscm.server.utils.LoggerWrapper;
 
 abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext> {
 
+    public final static String resourceTypeName = "OpsWorksCM::Server";
+
     protected ClientWrapper client;
     protected LoggerWrapper log;
 

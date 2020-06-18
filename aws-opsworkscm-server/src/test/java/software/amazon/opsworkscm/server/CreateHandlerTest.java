@@ -1,6 +1,10 @@
 package software.amazon.opsworkscm.server;
 
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.opsworkscm.model.CreateServerResponse;
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
 import software.amazon.awssdk.services.opsworkscm.model.InvalidStateException;
@@ -9,17 +13,16 @@ import software.amazon.awssdk.services.opsworkscm.model.ResourceAlreadyExistsExc
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
+import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotStabilizedException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -177,26 +180,30 @@ public class CreateHandlerTest {
         ResourceAlreadyExistsException myException = ResourceAlreadyExistsException.builder().message("Whatever API says").build();
 
         doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.AlreadyExists);
-        assertThat(response.getMessage()).isEqualTo(myException.getMessage());
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnAlreadyExistsException e) {
+            assertThat(e.getMessage()).isEqualTo("Resource of type 'OpsWorksCM::Server' with identifier 'ServerName' already exists.");
+        }
     }
 
     @Test
     public void testCreateServerExecuteHandlerFailure() {
-        NullPointerException myException = new NullPointerException("Handler already worked 8 hours. Nap time!");
+        String exceptionMessage = "Handler already worked 8 hours. Nap time!";
+        NullPointerException myException = new NullPointerException(exceptionMessage);
 
         doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
-        assertThat(response.getMessage()).isEqualTo("Internal Failure");
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnInternalFailureException e) {
+            assert (e.getCause() == null || !e.getCause().getMessage().equals(exceptionMessage));
+        }
     }
 
     @Test
     public void testCreateServerStabilizeHandlerFailure() {
-        NullPointerException myException = new NullPointerException("Handler already worked 8 hours. Nap time!");
+        String exceptionMessage = "Handler already worked 8 hours. Nap time!";
+        NullPointerException myException = new NullPointerException(exceptionMessage);
 
         CallbackContext callbackContext = CallbackContext.builder()
                 .stabilizationRetryTimes(0)
@@ -204,37 +211,43 @@ public class CreateHandlerTest {
                 .build();
 
         doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
-        assertThat(response.getMessage()).isEqualTo("Internal Failure");
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnInternalFailureException e) {
+            assert (e.getCause() == null || !e.getCause().getMessage().equals(exceptionMessage));
+        }
     }
 
     @Test
     public void testCreateServerForwardsValidationException() {
-        ValidationException myException = ValidationException.builder().message("BadRequest").build();
+        String exceptionMessage = "BadRequest";
+        ValidationException myException = ValidationException.builder().message(exceptionMessage).build();
 
         doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
-        assertThat(response.getMessage()).isEqualTo("BadRequest");
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnInvalidRequestException e) {
+            assertThat(e.getMessage()).isEqualTo("Invalid request provided: " + exceptionMessage);
+        }
     }
 
     @Test
     public void testCreateServerForwardsOpsWorksCmException() {
-        OpsWorksCmException myException = (OpsWorksCmException) OpsWorksCmException.builder().message("Cross-account pass role is not allowed.").build();
+        String exceptionMessage = "Cross-account pass role is not allowed.";
+        OpsWorksCmException myException = (OpsWorksCmException) OpsWorksCmException.builder().message(exceptionMessage).build();
 
         doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
-        assertThat(response.getMessage()).isEqualTo("Cross-account pass role is not allowed.");
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnInvalidRequestException e) {
+            assertThat(e.getMessage()).isEqualTo("Invalid request provided: " + exceptionMessage);
+        }
     }
 
     @Test
     public void testCreateServerForwardsValidationExceptionStabilize() {
-        ValidationException myException = ValidationException.builder().message("BadRequest").build();
+        String exceptionMessage = "BadRequest";
+        ValidationException myException = ValidationException.builder().message(exceptionMessage).build();
 
         CallbackContext callbackContext = CallbackContext.builder()
                 .stabilizationRetryTimes(0)
@@ -242,10 +255,11 @@ public class CreateHandlerTest {
                 .build();
 
         doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
-        assertThat(response.getMessage()).isEqualTo("BadRequest");
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnInvalidRequestException e) {
+            assertThat(e.getMessage()).isEqualTo("Invalid request provided: " + exceptionMessage);
+        }
     }
 
     @Test
@@ -253,10 +267,11 @@ public class CreateHandlerTest {
         InvalidStateException myException = InvalidStateException.builder().message("Service is done for!!1").build();
 
         doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
-        assertThat(response.getMessage()).isEqualTo("Service Internal Failure");
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnNotStabilizedException e) {
+            assertThat(e.getMessage()).isEqualTo("Resource of type 'OpsWorksCM::Server' with identifier 'ServerName' did not stabilize.");
+        }
     }
 
     @Test
@@ -269,10 +284,11 @@ public class CreateHandlerTest {
                 .build();
 
         doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
-        assertThat(response.getMessage()).isEqualTo("Service Internal Failure");
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnNotStabilizedException e) {
+            assertThat(e.getMessage()).isEqualTo("Resource of type 'OpsWorksCM::Server' with identifier 'ServerName' did not stabilize.");
+        }
     }
 
     @Test

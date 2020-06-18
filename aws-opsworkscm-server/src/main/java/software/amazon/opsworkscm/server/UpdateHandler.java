@@ -1,13 +1,18 @@
 package software.amazon.opsworkscm.server;
 
 import software.amazon.awssdk.services.opsworkscm.model.InvalidStateException;
+import software.amazon.awssdk.services.opsworkscm.model.OpsWorksCmException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
-import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.CfnNotStabilizedException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import static software.amazon.opsworkscm.server.ResourceModel.IDENTIFIER_KEY_SERVERNAME;
 
 public class UpdateHandler extends BaseOpsWorksCMHandler {
 
@@ -19,6 +24,7 @@ public class UpdateHandler extends BaseOpsWorksCMHandler {
             final Logger logger) {
 
         InvocationContext context = initializeContext(proxy, request, callbackContext, logger);
+        String serverName = context.getModel().getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
 
         try {
             if (!context.getCallbackContext().isUpdateTagComplete()) {
@@ -29,14 +35,17 @@ public class UpdateHandler extends BaseOpsWorksCMHandler {
             }
             return ProgressEvent.defaultSuccessHandler(context.getModel());
         } catch (ResourceNotFoundException e) {
-            log.error(String.format("ResourceNotFoundException during update of server %s, with message %s", context.getModel().getServerName(), e.getMessage()), e);
-            return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.NotFound);
+            log.error(String.format("ResourceNotFoundException during update of server %s, with message %s", serverName, e.getMessage()), e);
+            throw new CfnNotFoundException(resourceTypeName, serverName);
         } catch (InvalidStateException e) {
-            log.error(String.format("InvalidStateException during update of server %s, with message %s", context.getModel().getServerName(), e.getMessage()), e);
-            return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.NotUpdatable);
-        } catch (ValidationException e) {
-            log.error(String.format("ValidationException during update of server %s, with message %s", context.getModel().getServerName(), e.getMessage()), e);
-            return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.InvalidRequest);
+            log.error(String.format("InvalidStateException during update of server %s, with message %s", serverName, e.getMessage()), e);
+            throw new CfnNotStabilizedException(resourceTypeName, serverName);
+        } catch (OpsWorksCmException e) {
+            log.error(String.format("ValidationException during update of server %s, with message %s", serverName, e.getMessage()), e);
+            throw new CfnInvalidRequestException(e.getMessage(), e);
+        } catch (Exception e) {
+            log.error(String.format("UpdateHandler failure during delete-server for %s.", serverName), e);
+            throw new CfnInternalFailureException(e);
         }
     }
 

@@ -18,8 +18,9 @@ import software.amazon.awssdk.services.opsworkscm.model.UntagResourceRequest;
 import software.amazon.awssdk.services.opsworkscm.model.UntagResourceResponse;
 import software.amazon.awssdk.services.opsworkscm.model.UpdateServerRequest;
 import software.amazon.awssdk.services.opsworkscm.model.UpdateServerResponse;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -129,7 +130,7 @@ public class UpdateHandlerTest {
         callbackContext.setUpdateTagComplete(false);
         callbackContext.setUpdateServerComplete(true);
         doThrow(ResourceNotFoundException.builder().message(exceptionMessage).build()).when(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
-        assertResourceNotFound(exceptionMessage);
+        assertResourceNotFound();
     }
 
     @Test
@@ -138,7 +139,7 @@ public class UpdateHandlerTest {
         callbackContext.setUpdateTagComplete(false);
         callbackContext.setUpdateServerComplete(true);
         doThrow(ResourceNotFoundException.builder().message(exceptionMessage).build()).when(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
-        assertResourceNotFound(exceptionMessage);
+        assertResourceNotFound();
     }
 
     @Test
@@ -147,7 +148,7 @@ public class UpdateHandlerTest {
         callbackContext.setUpdateTagComplete(false);
         callbackContext.setUpdateServerComplete(false);
         doThrow(ResourceNotFoundException.builder().message(exceptionMessage).build()).when(proxy).injectCredentialsAndInvokeV2(any(DescribeServersRequest.class), any());
-        assertResourceNotFound(exceptionMessage);
+        assertResourceNotFound();
     }
 
     @Test
@@ -156,7 +157,20 @@ public class UpdateHandlerTest {
         callbackContext.setUpdateTagComplete(true);
         callbackContext.setUpdateServerComplete(false);
         doThrow(ResourceNotFoundException.builder().message(exceptionMessage).build()).when(proxy).injectCredentialsAndInvokeV2(any(UpdateServerRequest.class), any());
-        assertResourceNotFound(exceptionMessage);
+        assertResourceNotFound();
+    }
+
+    @Test
+    public void updateServerSomeExceptionNotForwarded() {
+        String exceptionMessage = "Batan!";
+        callbackContext.setUpdateTagComplete(true);
+        callbackContext.setUpdateServerComplete(false);
+        doThrow(new RuntimeException(exceptionMessage)).when(proxy).injectCredentialsAndInvokeV2(any(UpdateServerRequest.class), any());
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnInternalFailureException e) {
+            assertThat(e.getMessage()).isEqualTo("Internal error occurred.");
+        }
     }
 
     @Test
@@ -335,12 +349,13 @@ public class UpdateHandlerTest {
         return response;
     }
 
-    private void assertResourceNotFound(String exceptionMessage) {
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getMessage()).isEqualTo(exceptionMessage);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.NotFound);
+    private void assertResourceNotFound() {
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnNotFoundException e) {
+            assertThat(e.getMessage()).startsWith("Resource of type 'OpsWorksCM::Server' with identifier '");
+            assertThat(e.getMessage()).endsWith("' was not found.");
+        }
     }
 
     private void verifyUntagDiff(List<String> keepKeys, List<String> removeKeys) {
