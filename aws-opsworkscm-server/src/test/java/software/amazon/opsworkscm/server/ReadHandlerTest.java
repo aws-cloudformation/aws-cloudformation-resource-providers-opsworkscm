@@ -1,14 +1,16 @@
 package software.amazon.opsworkscm.server;
 
-import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
-import software.amazon.awssdk.services.opsworkscm.model.Server;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
+import software.amazon.awssdk.services.opsworkscm.model.OpsWorksCmException;
+import software.amazon.awssdk.services.opsworkscm.model.Server;
+import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -18,9 +20,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -113,14 +113,29 @@ public class ReadHandlerTest {
 
     @Test
     public void testDescribeServerNotFound() {
-        software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException opsWorksCmResourceNotFoundException = software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException.builder().message("Nani??!").build();
+        String exceptionMessage = "Nani??!";
+        software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException opsWorksCmResourceNotFoundException = software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException.builder().message(exceptionMessage).build();
 
         doThrow(opsWorksCmResourceNotFoundException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
 
-        assertThrows(ResourceNotFoundException.class,
-                ()->{
-                    handler.handleRequest(proxy, request, callbackContext, logger);
-                });
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnNotFoundException e) {
+            assertThat(e.getCause().getMessage()).isEqualTo(exceptionMessage);
+        }
+    }
+
+    @Test
+    public void testOtherException() {
+        String exceptionMessage = "Cross-account pass role is not allowed.";
+        OpsWorksCmException myException = (OpsWorksCmException) OpsWorksCmException.builder().message(exceptionMessage).build();
+
+        doThrow(myException).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        try {
+            handler.handleRequest(proxy, request, callbackContext, logger);
+        } catch (CfnGeneralServiceException e) {
+            assertThat(e.getMessage()).isEqualTo("Error occurred during operation '" + exceptionMessage + "'.");
+        }
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> assertDescribeSuccess(ResourceHandlerRequest<ResourceModel> request) {

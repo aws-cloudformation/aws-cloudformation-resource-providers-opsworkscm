@@ -6,6 +6,9 @@ import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundExceptio
 import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.awssdk.services.opsworkscm.model.ServerStatus;
 import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotStabilizedException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -38,7 +41,7 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
             }
         } catch (InvalidStateException e) {
             log.error(String.format("Service Side failure during delete-server for %s.", serverName), e);
-            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.NotStabilized, "Service Internal Failure");
+            throw new CfnNotStabilizedException(resourceTypeName, serverName);
         } catch (ResourceNotFoundException e) {
             return handleServerNotFound(context, serverName);
         } catch (ValidationException e) {
@@ -47,10 +50,10 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
                 log.error(String.format("Server operation still in progress during delete-server of %s.", serverName));
                 return ProgressEvent.defaultInProgressHandler(context.getCallbackContext(), CALLBACK_DELAY_SECONDS, context.getModel());
             }
-            return ProgressEvent.defaultFailureHandler(e, HandlerErrorCode.InvalidRequest);
+            throw new CfnInvalidRequestException(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(String.format("CreateHandler failure during delete-server for %s.", serverName), e);
-            return ProgressEvent.failed(context.getModel(), context.getCallbackContext(), HandlerErrorCode.InternalFailure, "Internal Failure");
+            log.error(String.format("DeleteHandler failure during delete-server for %s.", serverName), e);
+            throw new CfnInternalFailureException(e);
         }
     }
 
