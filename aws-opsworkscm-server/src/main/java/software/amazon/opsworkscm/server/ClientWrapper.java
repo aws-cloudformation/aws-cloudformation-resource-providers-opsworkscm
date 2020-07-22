@@ -159,12 +159,17 @@ public class ClientWrapper {
         if (oldModel.getTags() == null) {
             return null;
         }
+
         oldTags = oldModel.getTags().stream().map(t -> t.getKey());
         if (model.getTags() == null) {
             tagKeyDiff = oldTags.collect(Collectors.toList());
         } else {
             List<String> newTagKeys = model.getTags().stream().map(t -> t.getKey()).collect(Collectors.toList());
             tagKeyDiff = oldTags.filter(k -> !newTagKeys.contains(k)).collect(Collectors.toList());
+        }
+
+        if (tagKeyDiff.size() == 0) {
+            return null;
         }
 
         return UntagResourceRequest.builder()
