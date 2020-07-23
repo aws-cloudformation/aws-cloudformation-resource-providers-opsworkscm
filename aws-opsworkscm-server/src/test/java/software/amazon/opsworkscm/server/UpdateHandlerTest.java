@@ -271,8 +271,30 @@ public class UpdateHandlerTest {
     }
 
     @Test
-    public void tagsAreDiffedOnUntagNoPreviousTags() {
-        verifyUntagDiff(ImmutableList.of("keepMe", "keepMe2"), Collections.emptyList());
+    public void noUntagOnNoPreviousTags() {
+        List<Tag> newTags = new ArrayList<>();
+        List<Tag> oldTags = new ArrayList<>();
+        newTags.add(Tag.builder().key("keepMe").value("").build());
+        request.setDesiredResourceState(ResourceModel.builder().tags(newTags).build());
+        request.setPreviousResourceState(ResourceModel.builder().tags(oldTags).build());
+        assertStabilizeSuccess(request);
+        ArgumentCaptor<AwsRequest> accountArgumentCaptor = forClass(AwsRequest.class);
+        verify(proxy, atLeastOnce()).injectCredentialsAndInvokeV2(accountArgumentCaptor.capture(), any());
+        Optional<AwsRequest> request = accountArgumentCaptor.getAllValues().stream().filter(s -> s.getClass().equals(UntagResourceRequest.class)).findFirst();
+        assertThat(request.isPresent()).isFalse();
+    }
+
+    @Test
+    public void noUntagOnNoTagsAtAll() {
+        List<Tag> newTags = new ArrayList<>();
+        List<Tag> oldTags = new ArrayList<>();
+        request.setDesiredResourceState(ResourceModel.builder().tags(newTags).build());
+        request.setPreviousResourceState(ResourceModel.builder().tags(oldTags).build());
+        assertStabilizeSuccess(request);
+        ArgumentCaptor<AwsRequest> accountArgumentCaptor = forClass(AwsRequest.class);
+        verify(proxy, atLeastOnce()).injectCredentialsAndInvokeV2(accountArgumentCaptor.capture(), any());
+        Optional<AwsRequest> request = accountArgumentCaptor.getAllValues().stream().filter(s -> s.getClass().equals(UntagResourceRequest.class)).findFirst();
+        assertThat(request.isPresent()).isFalse();
     }
 
     @Test
