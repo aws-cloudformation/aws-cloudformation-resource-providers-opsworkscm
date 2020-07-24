@@ -10,7 +10,6 @@
             "amazon",
             "opsworkscm",
             "server"
-        ],
-        "protocolVersion": "2.0.0"
+        ]
     }
 }
