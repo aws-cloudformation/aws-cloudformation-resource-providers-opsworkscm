@@ -6,7 +6,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
+import software.amazon.awssdk.services.opsworkscm.model.ListTagsForResourceResponse;
 import software.amazon.awssdk.services.opsworkscm.model.Server;
+import software.amazon.awssdk.services.opsworkscm.model.Tag;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -38,6 +40,7 @@ public class ListHandlerTest {
     @Test
     public void handleRequest_SimpleSuccess() {
         doReturn(DescribeServersResponse.builder().servers(Server.builder().serverName(SERVER_NAME).endpoint(ENDPOINT).build()).build())
+                .doReturn(ListTagsForResourceResponse.builder().tags(Tag.builder().key("asd").value("asd").build()).build())
                 .when(proxy).injectCredentialsAndInvokeV2(any(), any());
         final ListHandler handler = new ListHandler();
 

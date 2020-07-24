@@ -8,6 +8,7 @@ import software.amazon.awssdk.services.opsworkscm.model.ServerStatus;
 import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
 import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnNotStabilizedException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
@@ -100,7 +101,11 @@ public class DeleteHandler extends BaseOpsWorksCMHandler {
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> handleServerNotFound(InvocationContext context, final String serverName) {
-        log.info(String.format("Server %s deleted successfully.", serverName));
-        return ProgressEvent.defaultSuccessHandler(context.getModel());
+        if (context.getCallbackContext().isStabilizationStarted()) {
+            log.info(String.format("Server %s deleted successfully.", serverName));
+            return ProgressEvent.defaultSuccessHandler(context.getModel());
+        }
+        //The CFN team demands this behaviour in their contract tests
+        throw new CfnNotFoundException(resourceTypeName, serverName);
     }
 }

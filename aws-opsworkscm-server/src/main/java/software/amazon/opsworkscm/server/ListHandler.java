@@ -12,8 +12,9 @@ import software.amazon.opsworkscm.server.utils.LoggerWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class ListHandler extends BaseHandler<CallbackContext> {
+public class ListHandler extends BaseOpsWorksCMHandler {
 
     private static final int NO_CALLBACK_DELAY = 0;
 
@@ -47,13 +48,15 @@ public class ListHandler extends BaseHandler<CallbackContext> {
                 .build();
     }
 
+    //use same function for all returns
     private List<ResourceModel> addDescribeServersResponseAttributes(final DescribeServersResponse response) {
         List<ResourceModel> models = new ArrayList<>();
         List<Server> servers = response.hasServers() ? response.servers() : new ArrayList<>();
-        servers.forEach(server -> models.add(ResourceModel.builder()
-                .endpoint(server.endpoint())
-                .serverName(server.serverName())
-                .build()));
+        servers.forEach(server -> {
+            List<Tag> tags = client.listServerTags(server.serverArn()).tags().stream()
+                    .map(tag -> Tag.builder().key(tag.key()).value(tag.value()).build()).collect(Collectors.toList());
+            models.add(generateModelFromServer(server, tags));
+        });
         return models;
     }
 }

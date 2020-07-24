@@ -26,6 +26,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -58,6 +59,8 @@ public class CreateHandlerTest {
     private static final String INSTANCE_TYPE = "m5.xlarge";
     private static final String INSTANCE_PROFILE = "arn:aws:iam::012345678912:instance-profile/aws-opsworks-cm-ec2-role";
     private static final String SERVICE_ROLE = "arn:aws:iam::012345678912:role/service-role/aws-opsworks-cm-service-role";
+    private static final String ENDPOINT = "myendpoint.com";
+    private static final String SERVER_ARN = "arn:aws:opsworks-cm:us-east-1:123123123123:server/ServerName";
 
     @BeforeEach
     public void setup() {
@@ -430,7 +433,7 @@ public class CreateHandlerTest {
         assertThat(executeResponse.getMessage()).isNull();
         assertThat(executeResponse.getErrorCode()).isNull();
 
-        doReturn(DescribeServersResponse.builder().servers(Server.builder().serverName(SERVER_NAME).status("CREATING").build()).build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        doReturn(getDescribeServerResponse("CREATING")).when(proxy).injectCredentialsAndInvokeV2(any(), any());
         ProgressEvent<ResourceModel, CallbackContext> stabilizeResponse
                 = handler.handleRequest(proxy, request, executeResponse.getCallbackContext(), logger);
         assertThat(stabilizeResponse).isNotNull();
@@ -444,15 +447,31 @@ public class CreateHandlerTest {
         assertThat(stabilizeResponse.getMessage()).isNull();
         assertThat(stabilizeResponse.getErrorCode()).isNull();
 
-        doReturn(DescribeServersResponse.builder().servers(Server.builder().serverName(SERVER_NAME).status("HEALTHY").build()).build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        doReturn(getDescribeServerResponse("HEALTHY")).when(proxy).injectCredentialsAndInvokeV2(any(), any());
         stabilizeResponse = handler.handleRequest(proxy, request, executeResponse.getCallbackContext(), logger);
         assertThat(stabilizeResponse).isNotNull();
         assertThat(stabilizeResponse.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(stabilizeResponse.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(stabilizeResponse.getResourceModel().getEndpoint()).isEqualTo(ENDPOINT);
+        assertThat(stabilizeResponse.getResourceModel().getArn()).isEqualTo(SERVER_ARN);
         assertThat(stabilizeResponse.getResourceModels()).isNull();
         assertThat(stabilizeResponse.getMessage()).isNull();
         assertThat(stabilizeResponse.getErrorCode()).isNull();
 
         return executeResponse;
+    }
+
+    private DescribeServersResponse getDescribeServerResponse(String status) {
+        return DescribeServersResponse.builder().servers(Server.builder()
+                .status(status)
+                .serverName(SERVER_NAME)
+                .engine(ENGINE)
+                .engineVersion(ENGINE_VERSION)
+                .engineModel(ENGINE_MODEL)
+                .instanceProfileArn(INSTANCE_PROFILE)
+                .serviceRoleArn(SERVICE_ROLE)
+                .instanceType(INSTANCE_TYPE)
+                .serverArn(SERVER_ARN)
+                .endpoint(ENDPOINT)
+                .build()).build();
     }
 }

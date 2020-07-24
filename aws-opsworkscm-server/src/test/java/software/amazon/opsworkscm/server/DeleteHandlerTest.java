@@ -156,13 +156,13 @@ public class DeleteHandlerTest {
         assertThat(actualServerName.length()).isEqualTo(40);
     }
 
-    @Test
-    public void testExecuteResourceNotFound() {
-        doThrow(ResourceNotFoundException.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
-        final ProgressEvent<ResourceModel, CallbackContext> response
-                = handler.handleRequest(proxy, request, callbackContext, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-    }
+//    @Test
+//    public void testExecuteResourceNotFound() {
+//        doThrow(ResourceNotFoundException.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+//        final ProgressEvent<ResourceModel, CallbackContext> response
+//                = handler.handleRequest(proxy, request, callbackContext, logger);
+//        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+//    }
 
     @Test
     public void testStabilizeResourceNotFound() {

@@ -9,6 +9,8 @@ import software.amazon.awssdk.services.opsworkscm.model.DeleteServerResponse;
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersRequest;
 import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
 import software.amazon.awssdk.services.opsworkscm.model.EngineAttribute;
+import software.amazon.awssdk.services.opsworkscm.model.ListTagsForResourceRequest;
+import software.amazon.awssdk.services.opsworkscm.model.ListTagsForResourceResponse;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.opsworkscm.model.Tag;
 import software.amazon.awssdk.services.opsworkscm.model.TagResourceRequest;
@@ -39,6 +41,10 @@ public class ClientWrapper {
 
     public DescribeServersResponse describeServer(String serverName) {
         return proxy.injectCredentialsAndInvokeV2(buildDescribeServerRequest(serverName), client::describeServers);
+    }
+
+    public ListTagsForResourceResponse listServerTags(String resourceArn) {
+        return proxy.injectCredentialsAndInvokeV2(buildListTagsForResourceRequest(resourceArn), client::listTagsForResource);
     }
 
     public DescribeServersResponse describeAllServers() {
@@ -76,6 +82,12 @@ public class ClientWrapper {
     private DescribeServersRequest buildDescribeServerRequest(String serverName) {
         return DescribeServersRequest.builder()
                 .serverName(serverName)
+                .build();
+    }
+
+    private ListTagsForResourceRequest buildListTagsForResourceRequest(String resourceArn) {
+        return ListTagsForResourceRequest.builder()
+                .resourceArn(resourceArn)
                 .build();
     }
     private DescribeServersRequest buildDescribeAllServersRequest() {

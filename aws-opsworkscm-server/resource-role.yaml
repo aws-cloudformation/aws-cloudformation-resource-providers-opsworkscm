@@ -27,6 +27,7 @@ Resources:
                 - "opsworks-cm:CreateServer"
                 - "opsworks-cm:DeleteServer"
                 - "opsworks-cm:DescribeServers"
+                - "opsworks-cm:ListTagsForResource"
                 - "opsworks-cm:TagResource"
                 - "opsworks-cm:UntagResource"
                 - "opsworks-cm:UpdateServer"
