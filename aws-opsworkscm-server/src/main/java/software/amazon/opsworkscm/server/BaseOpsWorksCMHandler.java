@@ -2,12 +2,18 @@ package software.amazon.opsworkscm.server;
 
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.services.opsworkscm.OpsWorksCmClient;
+import software.amazon.awssdk.services.opsworkscm.model.DescribeServersResponse;
+import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 import software.amazon.opsworkscm.server.utils.LoggerWrapper;
+
+import java.util.List;
+
+import static software.amazon.opsworkscm.server.ResourceModel.IDENTIFIER_KEY_SERVERNAME;
 
 abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext> {
 
@@ -39,7 +45,6 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
         this.log = new LoggerWrapper(logger);
 
         setModelServerName(context);
-        setModelId(context);
 
         final OpsWorksCmClient opsWorksCmClient = ClientBuilder.getClient();
         this.client = new ClientWrapper(opsWorksCmClient, context.getModel(), context.getOldModel(), proxy, this.log);
@@ -66,13 +71,36 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
         }
     }
 
-    private void setModelId(InvocationContext context) {
-        if (context.getModel().getId() == null) {
-            log.log("RequestModel doesn't have the model id. Setting it using request identifier and client token");
-            context.getModel().setId(IdentifierUtils.generateResourceIdentifier(
-                    context.getRequest().getLogicalResourceIdentifier(),
-                    context.getRequest().getClientRequestToken()
-            ));
-        }
+    protected void addOutputAttributes(InvocationContext context) {
+        final DescribeServersResponse result;
+        final String serverName = context.getModel().getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
+        result = client.describeServer(serverName);
+        Server server = result.servers().get(0);
+        context.getModel().setEndpoint(server.endpoint());
+        context.getModel().setArn(server.serverArn());
     }
+
+    protected ResourceModel generateModelFromServer(Server server, List<Tag> tags) {
+        return ResourceModel.builder()
+                .backupRetentionCount(server.backupRetentionCount())
+                .customDomain(server.customDomain())
+                .disableAutomatedBackup(server.disableAutomatedBackup())
+                .associatePublicIpAddress(server.associatePublicIpAddress())
+                .engine(server.engine())
+                .engineModel(server.engineModel())
+                .engineVersion(server.engineVersion())
+                .instanceProfileArn(server.instanceProfileArn())
+                .instanceType(server.instanceType())
+                .keyPair(server.keyPair())
+                .preferredBackupWindow(server.preferredBackupWindow())
+                .preferredMaintenanceWindow(server.preferredMaintenanceWindow())
+                .serverName(server.serverName())
+                .serviceRoleArn(server.serviceRoleArn())
+                .subnetIds(server.subnetIds())
+                .endpoint(server.endpoint())
+                .arn(server.serverArn())
+                .tags(tags)
+                .build();
+    }
+
 }

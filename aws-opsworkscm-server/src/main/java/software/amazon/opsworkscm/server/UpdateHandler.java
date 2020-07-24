@@ -3,6 +3,7 @@ package software.amazon.opsworkscm.server;
 import software.amazon.awssdk.services.opsworkscm.model.InvalidStateException;
 import software.amazon.awssdk.services.opsworkscm.model.OpsWorksCmException;
 import software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -11,6 +12,8 @@ import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.util.List;
 
 import static software.amazon.opsworkscm.server.ResourceModel.IDENTIFIER_KEY_SERVERNAME;
 
@@ -33,7 +36,9 @@ public class UpdateHandler extends BaseOpsWorksCMHandler {
             if (!context.getCallbackContext().isUpdateServerComplete()) {
                 return updateServer(context);
             }
-            return ProgressEvent.defaultSuccessHandler(context.getModel());
+            Server server = client.describeServer(context.getModel().getServerName()).servers().get(0);
+            List<Tag> tags = context.getRequest().getDesiredResourceState().getTags();
+            return ProgressEvent.defaultSuccessHandler(generateModelFromServer(server, tags));
         } catch (ResourceNotFoundException e) {
             log.error(String.format("ResourceNotFoundException during update of server %s, with message %s", serverName, e.getMessage()), e);
             throw new CfnNotFoundException(resourceTypeName, serverName);

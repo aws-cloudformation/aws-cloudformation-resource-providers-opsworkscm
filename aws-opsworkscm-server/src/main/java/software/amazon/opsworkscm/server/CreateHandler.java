@@ -10,17 +10,17 @@ import software.amazon.awssdk.services.opsworkscm.model.Server;
 import software.amazon.awssdk.services.opsworkscm.model.ServerStatus;
 import software.amazon.awssdk.services.opsworkscm.model.ValidationException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotStabilizedException;
-import software.amazon.cloudformation.exceptions.CfnResourceConflictException;
 import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.util.List;
 
 import static software.amazon.opsworkscm.server.ResourceModel.IDENTIFIER_KEY_SERVERNAME;
 
@@ -99,7 +99,8 @@ public class CreateHandler extends BaseOpsWorksCMHandler {
         switch (serverStatus) {
             case HEALTHY:
                 log.info(String.format("Server %s succeeded CREATE.", actualServerName));
-                return ProgressEvent.defaultSuccessHandler(model);
+                List<Tag> tags = context.getRequest().getDesiredResourceState().getTags();
+                return ProgressEvent.defaultSuccessHandler(generateModelFromServer(server, tags));
             case BACKING_UP:
             case MODIFYING:
             case RESTORING:

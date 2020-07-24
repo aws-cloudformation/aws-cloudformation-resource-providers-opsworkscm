@@ -1,0 +1,60 @@
+{
+  "CREATE": {
+    "/LogicalResourceIdentifier": "MyServer",
+    "/ServerName": "cfnTestServer",
+    "/Engine": "Chef",
+    "/EngineVersion": "12",
+    "/EngineModel": "Single",
+    "/InstanceProfileArn": "arn:aws:iam::<ACCOUNT_ID>:instance-profile/aws-opsworks-cm-ec2-role",
+    "/ServiceRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/service-role/aws-opsworks-cm-service-role",
+    "/InstanceType": "m5.xlarge",
+    "/AssociatePublicIpAddress": "true",
+    "/PreferredMaintenanceWindow": "Fri:19:00",
+    "/PreferredBackupWindow": "21:00",
+    "/BackupRetentionCount": "10",
+    "/DisableAutomatedBackup": "false",
+    "/CustomDomain": null,
+    "/CustomCertificate": null,
+    "/CustomPrivateKey": null,
+    "/EngineAttributes": null,
+    "/KeyPair": null,
+    "/SecurityGroupIds": null,
+    "/SubnetIds": null,
+    "/Tags": [
+      {
+        "Key": "pete",
+        "Value": "asd"
+      }
+    ],
+    "/BackupId": null
+  },
+  "UPDATE": {
+    "/LogicalResourceIdentifier": "MyServer",
+    "/ServerName": "cfnTestServer",
+    "/Engine": "Chef",
+    "/EngineVersion": "12",
+    "/EngineModel": "Single",
+    "/InstanceProfileArn": "arn:aws:iam::<ACCOUNT_ID>:instance-profile/aws-opsworks-cm-ec2-role",
+    "/ServiceRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/service-role/aws-opsworks-cm-service-role",
+    "/InstanceType": "m5.xlarge",
+    "/AssociatePublicIpAddress": "true",
+    "/PreferredMaintenanceWindow": "Fri:19:00",
+    "/PreferredBackupWindow": "21:00",
+    "/BackupRetentionCount": "3",
+    "/DisableAutomatedBackup": "false",
+    "/CustomDomain": null,
+    "/CustomCertificate": null,
+    "/CustomPrivateKey": null,
+    "/EngineAttributes": null,
+    "/KeyPair": null,
+    "/SecurityGroupIds": null,
+    "/SubnetIds": null,
+    "/Tags": [
+      {
+        "Key": "pete",
+        "Value": "asd"
+      }
+    ],
+    "/BackupId": null
+  }
+}

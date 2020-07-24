@@ -66,6 +66,8 @@ public class UpdateHandlerTest {
     private static final String INSTANCE_TYPE = "m5.xlarge";
     private static final String INSTANCE_PROFILE = "arn:aws:iam::012345678912:instance-profile/aws-opsworks-cm-ec2-role";
     private static final String SERVICE_ROLE = "arn:aws:iam::012345678912:role/service-role/aws-opsworks-cm-service-role";
+    private static final String ENDPOINT = "myendpoint.com";
+    private static final String SERVER_ARN = "arn:aws:opsworks-cm:us-east-1:123123123123:server/ServerName";
 
     @BeforeEach
     public void setup() {
@@ -100,7 +102,7 @@ public class UpdateHandlerTest {
     }
 
     private void mockApiCalls() {
-        lenient().doReturn(DescribeServersResponse.builder().servers(Server.builder().serverName(SERVER_NAME).build()).build())
+        lenient().doReturn(getDescribeServerResponse("HEALTHY"))
                 .when(proxy).injectCredentialsAndInvokeV2(any(DescribeServersRequest.class), any());
         lenient().doReturn(UpdateServerResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(UpdateServerRequest.class), any());
         lenient().doReturn(TagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
@@ -363,7 +365,8 @@ public class UpdateHandlerTest {
         response = handler.handleRequest(proxy, request, response.getCallbackContext(), logger);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModel().getEndpoint()).isEqualTo(ENDPOINT);
+        assertThat(response.getResourceModel().getArn()).isEqualTo(SERVER_ARN);
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
@@ -415,5 +418,15 @@ public class UpdateHandlerTest {
         List<String> actualTagValues = tagRequest.tags().stream().map(software.amazon.awssdk.services.opsworkscm.model.Tag::value).collect(Collectors.toList());
         assertThat(newTagKeys.equals(actualTagKeys));
         assertThat(newTagValues.equals(actualTagValues));
+    }
+
+    private DescribeServersResponse getDescribeServerResponse(String status) {
+        ResourceModel requestModel = request.getDesiredResourceState();
+        return DescribeServersResponse.builder().servers(Server.builder()
+                .status(status)
+                .serverName(requestModel.getServerName())
+                .endpoint(ENDPOINT)
+                .serverArn(SERVER_ARN)
+                .build()).build();
     }
 }
