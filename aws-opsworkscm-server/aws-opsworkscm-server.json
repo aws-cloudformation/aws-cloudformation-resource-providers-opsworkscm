@@ -97,7 +97,7 @@
     },
     "BackupRetentionCount": {
       "type": "integer",
-      "minLength": 1
+      "minimum": 1
     },
     "Id": {
       "type": "string",
