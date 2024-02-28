@@ -410,14 +410,16 @@ public class UpdateHandlerTest {
         ArgumentCaptor<AwsRequest> accountArgumentCaptor = forClass(AwsRequest.class);
         verify(proxy, atLeastOnce()).injectCredentialsAndInvokeV2(accountArgumentCaptor.capture(), any());
         Optional<AwsRequest> request = accountArgumentCaptor.getAllValues().stream().filter(s -> s.getClass().equals(TagResourceRequest.class)).findFirst();
-        assertThat(request.isPresent());
-        TagResourceRequest tagRequest = (TagResourceRequest) request.get();
-        List<String> newTagKeys = newTags.stream().map(Tag::getKey).collect(Collectors.toList());
-        List<String> newTagValues = newTags.stream().map(Tag::getValue).collect(Collectors.toList());
-        List<String> actualTagKeys = tagRequest.tags().stream().map(software.amazon.awssdk.services.opsworkscm.model.Tag::key).collect(Collectors.toList());
-        List<String> actualTagValues = tagRequest.tags().stream().map(software.amazon.awssdk.services.opsworkscm.model.Tag::value).collect(Collectors.toList());
-        assertThat(newTagKeys.equals(actualTagKeys));
-        assertThat(newTagValues.equals(actualTagValues));
+        if (!newTags.isEmpty()) {
+            assertThat(request.isPresent()).isTrue();
+            TagResourceRequest tagRequest = (TagResourceRequest) request.get();
+            List<String> newTagKeys = newTags.stream().map(Tag::getKey).collect(Collectors.toList());
+            List<String> newTagValues = newTags.stream().map(Tag::getValue).collect(Collectors.toList());
+            List<String> actualTagKeys = tagRequest.tags().stream().map(software.amazon.awssdk.services.opsworkscm.model.Tag::key).collect(Collectors.toList());
+            List<String> actualTagValues = tagRequest.tags().stream().map(software.amazon.awssdk.services.opsworkscm.model.Tag::value).collect(Collectors.toList());
+            assertThat(newTagKeys.equals(actualTagKeys));
+            assertThat(newTagValues.equals(actualTagValues));
+        }
     }
 
     private DescribeServersResponse getDescribeServerResponse(String status) {
