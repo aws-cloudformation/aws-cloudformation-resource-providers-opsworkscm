@@ -159,6 +159,10 @@ public class ClientWrapper {
         }
         List<Tag> tagList = model.getTags().stream().map(t -> Tag.builder().key(t.getKey()).value(t.getValue()).build()).collect(Collectors.toList());
 
+        if (tagList.size() == 0) {
+            return null;
+        }
+
         return TagResourceRequest.builder()
                 .tags(tagList)
                 .resourceArn(getResourceArn())

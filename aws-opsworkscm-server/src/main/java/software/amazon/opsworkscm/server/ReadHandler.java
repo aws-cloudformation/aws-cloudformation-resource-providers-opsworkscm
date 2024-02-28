@@ -28,8 +28,7 @@ public class ReadHandler extends BaseOpsWorksCMHandler {
         log.info(String.format("Calling Describe Servers for ServerName %s", serverName));
 
         try {
-            addOutputAttributes(context);
-            return ProgressEvent.defaultSuccessHandler(context.getModel());
+            return ProgressEvent.defaultSuccessHandler(generateModel(context));
         } catch (final software.amazon.awssdk.services.opsworkscm.model.ResourceNotFoundException e) {
             log.error(String.format("Server %s was not found.", serverName), e);
             throw new CfnNotFoundException(e);

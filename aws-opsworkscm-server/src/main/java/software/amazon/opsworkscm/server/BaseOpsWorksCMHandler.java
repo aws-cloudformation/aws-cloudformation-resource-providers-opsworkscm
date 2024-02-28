@@ -25,6 +25,7 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
     protected static int NO_CALLBACK_DELAY = 0;
     protected static int CALLBACK_DELAY_SECONDS = 60;
     private static final int MAX_LENGTH_CONFIGURATION_SET_NAME = 40;
+    private static final String SERVER_NAME_PREFIX = "Server-";
 
     @Override
     abstract public ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -51,6 +52,15 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
         return context;
     }
 
+    private String generateServerName(final String logicalResourceId, final String clientRequestToken) {
+        if (StringUtils.isNullOrEmpty(logicalResourceId) || Character.isDigit(logicalResourceId.charAt(0))) {
+            return SERVER_NAME_PREFIX + IdentifierUtils.generateResourceIdentifier(logicalResourceId, clientRequestToken,
+                    MAX_LENGTH_CONFIGURATION_SET_NAME - SERVER_NAME_PREFIX.length());
+        } else {
+            return IdentifierUtils.generateResourceIdentifier(logicalResourceId, clientRequestToken, MAX_LENGTH_CONFIGURATION_SET_NAME);
+        }
+    }
+
     private void setModelServerName(InvocationContext context) {
         ResourceModel model = context.getModel();
         ResourceModel oldModel = context.getOldModel();
@@ -58,26 +68,21 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
             model.setServerName(oldModel.getServerName());
         } else if (StringUtils.isNullOrEmpty(model.getServerName())) {
             log.log("RequestModel doesn't have the server name. Setting it using request identifier and client token");
-            model.setServerName(
-                    IdentifierUtils.generateResourceIdentifier(
-                            context.getRequest().getLogicalResourceIdentifier(),
-                            context.getRequest().getClientRequestToken(),
-                            MAX_LENGTH_CONFIGURATION_SET_NAME
-                    )
-            );
+            final String serverName = generateServerName(context.getRequest().getLogicalResourceIdentifier(), context.getRequest().getClientRequestToken());
+            model.setServerName(serverName);
         } else if (model.getServerName().length() > MAX_LENGTH_CONFIGURATION_SET_NAME) {
             log.log(String.format("ServerName length was greater than %d characters. Truncating the ServerName", MAX_LENGTH_CONFIGURATION_SET_NAME));
             model.setServerName(model.getServerName().substring(0, MAX_LENGTH_CONFIGURATION_SET_NAME));
         }
     }
 
-    protected void addOutputAttributes(InvocationContext context) {
+    protected ResourceModel generateModel(InvocationContext context) {
         final DescribeServersResponse result;
         final String serverName = context.getModel().getPrimaryIdentifier().get(IDENTIFIER_KEY_SERVERNAME).toString();
         result = client.describeServer(serverName);
-        Server server = result.servers().get(0);
-        context.getModel().setEndpoint(server.endpoint());
-        context.getModel().setArn(server.serverArn());
+        final Server server = result.servers().get(0);
+        final List<Tag> tags = context.getRequest().getDesiredResourceState().getTags();
+        return generateModelFromServer(server, tags);
     }
 
     protected ResourceModel generateModelFromServer(Server server, List<Tag> tags) {
@@ -88,7 +93,6 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
                 .associatePublicIpAddress(server.associatePublicIpAddress())
                 .engine(server.engine())
                 .engineModel(server.engineModel())
-                .engineVersion(server.engineVersion())
                 .instanceProfileArn(server.instanceProfileArn())
                 .instanceType(server.instanceType())
                 .keyPair(server.keyPair())
@@ -97,10 +101,10 @@ abstract public class BaseOpsWorksCMHandler extends BaseHandler<CallbackContext>
                 .serverName(server.serverName())
                 .serviceRoleArn(server.serviceRoleArn())
                 .subnetIds(server.subnetIds())
+                .securityGroupIds(server.securityGroupIds())
                 .endpoint(server.endpoint())
                 .arn(server.serverArn())
                 .tags(tags)
                 .build();
     }
-
 }

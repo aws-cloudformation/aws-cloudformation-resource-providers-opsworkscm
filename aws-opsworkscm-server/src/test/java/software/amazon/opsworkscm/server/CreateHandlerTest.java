@@ -37,7 +37,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
-public class CreateHandlerTest {
+public class CreateHandlerTest extends TestBase {
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
