@@ -298,4 +298,3 @@ Returns the <code>Endpoint</code> value.
 #### Arn
 
 Returns the <code>Arn</code> value.
-
