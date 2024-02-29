@@ -2,7 +2,7 @@
     "artifact_type": "RESOURCE",
     "typeName": "AWS::OpsWorksCM::Server",
     "language": "java",
-    "runtime": "java8",
+    "runtime": "java17",
     "entrypoint": "software.amazon.opsworkscm.server.HandlerWrapper::handleRequest",
     "testEntrypoint": "software.amazon.opsworkscm.server.HandlerWrapper::testEntrypoint",
     "settings": {
