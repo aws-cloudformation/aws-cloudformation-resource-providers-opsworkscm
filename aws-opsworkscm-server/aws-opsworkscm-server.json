@@ -2,6 +2,13 @@
   "typeName": "AWS::OpsWorksCM::Server",
   "description": "Resource Type definition for AWS::OpsWorksCM::Server",
   "additionalProperties": false,
+  "tagging": {
+    "taggable": true,
+    "tagOnCreate": true,
+    "tagUpdatable": true,
+    "cloudFormationSystemTags": true,
+    "tagProperty": "/properties/Tags"
+  },
   "properties": {
     "KeyPair": {
       "type": "string",
